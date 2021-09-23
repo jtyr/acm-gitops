@@ -1,0 +1,42 @@
+name: On PR
+
+on:
+  pull_request:
+    branches:
+      - master
+
+jobs:
+  lint:
+    name: Linting
+    runs-on: ubuntu-latest
+    steps:
+      - name: Something
+        run: |
+          echo "Linting ..."
+
+  validate_res:
+    name: Resource validation
+    #needs: lint
+    runs-on: ubuntu-latest
+    steps:
+      - name: Something
+        run: |
+          echo "Validating resources..."
+
+  validate_conf:
+    name: Configuration validation
+    #needs: validate_res
+    runs-on: ubuntu-latest
+    steps:
+      - name: Something
+        run: |
+          echo "Validating configuration..."
+
+  check_single_app:
+    name: Updates to one application only
+    #needs: validate_conf
+    runs-on: ubuntu-latest
+    steps:
+      - name: Something
+        run: |
+          echo "Checking if only one application is changing..."

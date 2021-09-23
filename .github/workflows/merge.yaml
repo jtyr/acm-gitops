@@ -1,0 +1,25 @@
+name: On merge
+
+on:
+#  push:
+#    branches:
+#      - main
+  pull_request:
+    branches:
+      - master
+    types:
+      - closed
+
+jobs:
+  tag:
+    if: github.event.pull_request.merged == true
+    steps:
+      - name: Get app name
+        id: app
+        run: |
+          echo ::set-output name=app_name::myapp
+
+      - name: Create and push tag
+        run: |
+          git tag ${{ steps.app.outputs.app_name }}-$(date '+%Y%m%dT%H%M%S')-dev
+          git push --tags
