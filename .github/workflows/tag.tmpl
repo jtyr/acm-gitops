@@ -60,11 +60,11 @@ jobs:
       - &promote
         name: Promote to higer env
         run: |-
-          ENV=$(echo '-${{ steps.higher_env.outputs.env_name }}')
+          ENV=$(echo '-${{ steps.env.outputs.env_name }}')
           LEN=${#ENV}
 
           if [[ $LEN > 0 ]]; then
-              git tag "${GITHUB_REF:0:-$LEN}${ENV}"
+              git tag "${GITHUB_REF:0:-$LEN}-${{ steps.higher_env.outputs.env_name }}"
               git push --tags
           fi
 
