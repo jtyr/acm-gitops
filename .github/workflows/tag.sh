@@ -1,3 +1,3 @@
 #!/bin/bash
 
-yq e 'explode(.)' ./tag.yaml.tmpl > ./tag.yaml
+yq e 'explode(.)' ./tag.tmpl > ./tag.yaml

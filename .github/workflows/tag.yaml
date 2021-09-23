@@ -12,9 +12,12 @@ on:
 
 jobs:
   dev:
+    name: Dev
+    runs-on: ubuntu-latest
     if: endsWith(github.ref, '-dev')
     environment: dev
     steps:
+      - uses: actions/checkout@v2
       - name: Get env from tag
         id: env
         run: |-
@@ -46,9 +49,12 @@ jobs:
               git push --tags
           fi
   lobdev:
+    name: LobDev
+    runs-on: ubuntu-latest
     if: endsWith(github.ref, '-lobdev')
     environment: lobdev
     steps:
+      - uses: actions/checkout@v2
       - name: Get env from tag
         id: env
         run: |-
@@ -80,9 +86,12 @@ jobs:
               git push --tags
           fi
   uat:
+    name: UAT
+    runs-on: ubuntu-latest
     if: endsWith(github.ref, '-uat')
     environment: uat
     steps:
+      - uses: actions/checkout@v2
       - name: Get env from tag
         id: env
         run: |-
@@ -114,9 +123,12 @@ jobs:
               git push --tags
           fi
   prod:
+    name: Prod
+    runs-on: ubuntu-latest
     if: endsWith(github.ref, '-prod')
     environment: prod
     steps:
+      - uses: actions/checkout@v2
       - name: Get env from tag
         id: env
         run: |-
