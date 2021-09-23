@@ -10,9 +10,8 @@ jobs:
     name: Linting
     runs-on: ubuntu-latest
     steps:
-      - name: Something
-        run: |
-          echo "Linting ..."
+      - uses: actions/checkout@v2
+      - uses: pre-commit/action@v2.0.3
 
   validate_res:
     name: Resource validation
