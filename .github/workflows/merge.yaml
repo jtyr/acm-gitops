@@ -12,6 +12,8 @@ on:
 
 jobs:
   tag:
+    name: Tagging
+    runs-on: ubuntu-latest
     if: github.event.pull_request.merged == true
     steps:
       - name: Get app name
