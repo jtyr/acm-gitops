@@ -51,12 +51,14 @@ jobs:
       - name: Promote to higer env
         run: |-
           ENV=$(echo '-${{ steps.env.outputs.env_name }}')
-          LEN=${#ENV}
-          TAG=${GITHUB_REF##*/}
+          LEN="${#ENV}"
+          TAG="${GITHUB_REF##*/}"
 
-          if [[ $LEN > 0 ]]; then
+          if [[ -n '${{ steps.higher_env.outputs.env_name }}' ]]; then
               git tag "${TAG:0:-$LEN}-${{ steps.higher_env.outputs.env_name }}"
               git push --tags
+          else
+              echo '::notice::End of promotion'
           fi
   lobdev:
     name: LobDev
@@ -91,12 +93,14 @@ jobs:
       - name: Promote to higer env
         run: |-
           ENV=$(echo '-${{ steps.env.outputs.env_name }}')
-          LEN=${#ENV}
-          TAG=${GITHUB_REF##*/}
+          LEN="${#ENV}"
+          TAG="${GITHUB_REF##*/}"
 
-          if [[ $LEN > 0 ]]; then
+          if [[ -n '${{ steps.higher_env.outputs.env_name }}' ]]; then
               git tag "${TAG:0:-$LEN}-${{ steps.higher_env.outputs.env_name }}"
               git push --tags
+          else
+              echo '::notice::End of promotion'
           fi
   uat:
     name: UAT
@@ -131,12 +135,14 @@ jobs:
       - name: Promote to higer env
         run: |-
           ENV=$(echo '-${{ steps.env.outputs.env_name }}')
-          LEN=${#ENV}
-          TAG=${GITHUB_REF##*/}
+          LEN="${#ENV}"
+          TAG="${GITHUB_REF##*/}"
 
-          if [[ $LEN > 0 ]]; then
+          if [[ -n '${{ steps.higher_env.outputs.env_name }}' ]]; then
               git tag "${TAG:0:-$LEN}-${{ steps.higher_env.outputs.env_name }}"
               git push --tags
+          else
+              echo '::notice::End of promotion'
           fi
   prod:
     name: Prod
@@ -171,10 +177,12 @@ jobs:
       - name: Promote to higer env
         run: |-
           ENV=$(echo '-${{ steps.env.outputs.env_name }}')
-          LEN=${#ENV}
-          TAG=${GITHUB_REF##*/}
+          LEN="${#ENV}"
+          TAG="${GITHUB_REF##*/}"
 
-          if [[ $LEN > 0 ]]; then
+          if [[ -n '${{ steps.higher_env.outputs.env_name }}' ]]; then
               git tag "${TAG:0:-$LEN}-${{ steps.higher_env.outputs.env_name }}"
               git push --tags
+          else
+              echo '::notice::End of promotion'
           fi
