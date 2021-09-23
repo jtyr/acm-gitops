@@ -54,7 +54,7 @@ jobs:
           LEN=${#ENV}
 
           if [[ $LEN > 0 ]]; then
-              git tag "${GITHUB_REF:0:-$LEN}"
+              git tag "${GITHUB_REF:0:-$LEN}-${ENV}"
               git push --tags
           fi
   lobdev:
@@ -91,7 +91,7 @@ jobs:
           LEN=${#ENV}
 
           if [[ $LEN > 0 ]]; then
-              git tag "${GITHUB_REF:0:-$LEN}"
+              git tag "${GITHUB_REF:0:-$LEN}-${ENV}"
               git push --tags
           fi
   uat:
@@ -128,7 +128,7 @@ jobs:
           LEN=${#ENV}
 
           if [[ $LEN > 0 ]]; then
-              git tag "${GITHUB_REF:0:-$LEN}"
+              git tag "${GITHUB_REF:0:-$LEN}-${ENV}"
               git push --tags
           fi
   prod:
@@ -165,6 +165,6 @@ jobs:
           LEN=${#ENV}
 
           if [[ $LEN > 0 ]]; then
-              git tag "${GITHUB_REF:0:-$LEN}"
+              git tag "${GITHUB_REF:0:-$LEN}-${ENV}"
               git push --tags
           fi
