@@ -54,7 +54,7 @@ jobs:
           LEN=${#ENV}
 
           if [[ $LEN > 0 ]]; then
-              git tag "${GITHUB_REF:0:-$LEN}-${ENV}"
+              git tag "${GITHUB_REF:0:-$LEN}${ENV}"
               git push --tags
           fi
   lobdev:
@@ -64,6 +64,8 @@ jobs:
     environment: lobdev
     steps:
       - uses: actions/checkout@v2
+        with:
+          token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
       - name: Get env from tag
         id: env
         run: |-
@@ -91,7 +93,7 @@ jobs:
           LEN=${#ENV}
 
           if [[ $LEN > 0 ]]; then
-              git tag "${GITHUB_REF:0:-$LEN}-${ENV}"
+              git tag "${GITHUB_REF:0:-$LEN}${ENV}"
               git push --tags
           fi
   uat:
@@ -101,6 +103,8 @@ jobs:
     environment: uat
     steps:
       - uses: actions/checkout@v2
+        with:
+          token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
       - name: Get env from tag
         id: env
         run: |-
@@ -128,7 +132,7 @@ jobs:
           LEN=${#ENV}
 
           if [[ $LEN > 0 ]]; then
-              git tag "${GITHUB_REF:0:-$LEN}-${ENV}"
+              git tag "${GITHUB_REF:0:-$LEN}${ENV}"
               git push --tags
           fi
   prod:
@@ -138,6 +142,8 @@ jobs:
     environment: prod
     steps:
       - uses: actions/checkout@v2
+        with:
+          token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
       - name: Get env from tag
         id: env
         run: |-
@@ -165,6 +171,6 @@ jobs:
           LEN=${#ENV}
 
           if [[ $LEN > 0 ]]; then
-              git tag "${GITHUB_REF:0:-$LEN}-${ENV}"
+              git tag "${GITHUB_REF:0:-$LEN}${ENV}"
               git push --tags
           fi
