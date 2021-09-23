@@ -18,6 +18,8 @@ jobs:
     if: endsWith(github.ref, '-dev')
     environment: dev
     steps:
+      - uses: actions/checkout@v2
+
       - &get_env
         name: Get env from tag
         id: env
@@ -62,6 +64,7 @@ jobs:
     if: endsWith(github.ref, '-lobdev')
     environment: lobdev
     steps:
+      - uses: actions/checkout@v2
       - <<: *get_env
       - <<: *print_msg
       - <<: *get_higher_env
@@ -73,6 +76,7 @@ jobs:
     if: endsWith(github.ref, '-uat')
     environment: uat
     steps:
+      - uses: actions/checkout@v2
       - <<: *get_env
       - <<: *print_msg
       - <<: *get_higher_env
@@ -84,6 +88,7 @@ jobs:
     if: endsWith(github.ref, '-prod')
     environment: prod
     steps:
+      - uses: actions/checkout@v2
       - <<: *get_env
       - <<: *print_msg
       - <<: *get_higher_env
