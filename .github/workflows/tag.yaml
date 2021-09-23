@@ -19,144 +19,77 @@ jobs:
     environment: dev
     steps:
       - uses: actions/checkout@v2
-      - name: Get env from tag
-        id: env
-        run: |-
-          echo "::set-output name=env_name::${GITHUB_REF##*-}"
-      - name: Print message
-        run: |-
-          echo "Generating ${{ steps.env.outputs.env_name }} files..."
-      - name: Get higher env name
-        id: higher_env
-        run: |-
-          if [[ '${{ steps.env.outputs.env_name }}' == 'dev' ]]; then
-              NAME='lobdev'
-          elif [[ '${{ steps.env.outputs.env_name }}' == 'lobdev' ]]; then
-              NAME='uat'
-          elif [[ '${{ steps.env.outputs.env_name }}' == 'uat' ]]; then
-              NAME='prod'
-          elif [[ '${{ steps.env.outputs.env_name }}' == 'prod' ]]; then
-              NAME=''
-          fi
 
-          echo "::set-output name=env_name::$NAME"
-      - name: Promote to higer env
-        run: |-
-          ENV=$(echo '-${{ steps.higher_env.outputs.env_name }}')
-          LEN=${#ENV}
-
-          if [[ $LEN > 0 ]]; then
-              git tag "${GITHUB_REF:0:-$LEN}"
-              git push --tags
-          fi
-  lobdev:
-    name: LobDev
-    runs-on: ubuntu-latest
-    if: endsWith(github.ref, '-lobdev')
-    environment: lobdev
-    steps:
-      - uses: actions/checkout@v2
-      - name: Get env from tag
-        id: env
-        run: |-
-          echo "::set-output name=env_name::${GITHUB_REF##*-}"
-      - name: Print message
-        run: |-
-          echo "Generating ${{ steps.env.outputs.env_name }} files..."
-      - name: Get higher env name
-        id: higher_env
-        run: |-
-          if [[ '${{ steps.env.outputs.env_name }}' == 'dev' ]]; then
-              NAME='lobdev'
-          elif [[ '${{ steps.env.outputs.env_name }}' == 'lobdev' ]]; then
-              NAME='uat'
-          elif [[ '${{ steps.env.outputs.env_name }}' == 'uat' ]]; then
-              NAME='prod'
-          elif [[ '${{ steps.env.outputs.env_name }}' == 'prod' ]]; then
-              NAME=''
-          fi
-
-          echo "::set-output name=env_name::$NAME"
-      - name: Promote to higer env
-        run: |-
-          ENV=$(echo '-${{ steps.higher_env.outputs.env_name }}')
-          LEN=${#ENV}
-
-          if [[ $LEN > 0 ]]; then
-              git tag "${GITHUB_REF:0:-$LEN}"
-              git push --tags
-          fi
-  uat:
-    name: UAT
-    runs-on: ubuntu-latest
-    if: endsWith(github.ref, '-uat')
-    environment: uat
-    steps:
-      - uses: actions/checkout@v2
-      - name: Get env from tag
-        id: env
-        run: |-
-          echo "::set-output name=env_name::${GITHUB_REF##*-}"
-      - name: Print message
-        run: |-
-          echo "Generating ${{ steps.env.outputs.env_name }} files..."
-      - name: Get higher env name
-        id: higher_env
-        run: |-
-          if [[ '${{ steps.env.outputs.env_name }}' == 'dev' ]]; then
-              NAME='lobdev'
-          elif [[ '${{ steps.env.outputs.env_name }}' == 'lobdev' ]]; then
-              NAME='uat'
-          elif [[ '${{ steps.env.outputs.env_name }}' == 'uat' ]]; then
-              NAME='prod'
-          elif [[ '${{ steps.env.outputs.env_name }}' == 'prod' ]]; then
-              NAME=''
-          fi
-
-          echo "::set-output name=env_name::$NAME"
-      - name: Promote to higer env
-        run: |-
-          ENV=$(echo '-${{ steps.higher_env.outputs.env_name }}')
-          LEN=${#ENV}
-
-          if [[ $LEN > 0 ]]; then
-              git tag "${GITHUB_REF:0:-$LEN}"
-              git push --tags
-          fi
-  prod:
-    name: Prod
-    runs-on: ubuntu-latest
-    if: endsWith(github.ref, '-prod')
-    environment: prod
-    steps:
-      - uses: actions/checkout@v2
-      - name: Get env from tag
-        id: env
-        run: |-
-          echo "::set-output name=env_name::${GITHUB_REF##*-}"
-      - name: Print message
-        run: |-
-          echo "Generating ${{ steps.env.outputs.env_name }} files..."
-      - name: Get higher env name
-        id: higher_env
-        run: |-
-          if [[ '${{ steps.env.outputs.env_name }}' == 'dev' ]]; then
-              NAME='lobdev'
-          elif [[ '${{ steps.env.outputs.env_name }}' == 'lobdev' ]]; then
-              NAME='uat'
-          elif [[ '${{ steps.env.outputs.env_name }}' == 'uat' ]]; then
-              NAME='prod'
-          elif [[ '${{ steps.env.outputs.env_name }}' == 'prod' ]]; then
-              NAME=''
-          fi
-
-          echo "::set-output name=env_name::$NAME"
-      - name: Promote to higer env
-        run: |-
-          ENV=$(echo '-${{ steps.higher_env.outputs.env_name }}')
-          LEN=${#ENV}
-
-          if [[ $LEN > 0 ]]; then
-              git tag "${GITHUB_REF:0:-$LEN}"
-              git push --tags
-          fi
+#      - &get_env
+#        name: Get env from tag
+#        id: env
+#        run: |-
+#          echo "::set-output name=env_name::${GITHUB_REF##*-}"
+#
+#      - &print_msg
+#        name: Print message
+#        run: |-
+#          echo "Generating ${{ steps.env.outputs.env_name }} files..."
+#
+#      - &get_higher_env
+#        name: Get higher env name
+#        id: higher_env
+#        run: |-
+#          if [[ '${{ steps.env.outputs.env_name }}' == 'dev' ]]; then
+#              NAME='lobdev'
+#          elif [[ '${{ steps.env.outputs.env_name }}' == 'lobdev' ]]; then
+#              NAME='uat'
+#          elif [[ '${{ steps.env.outputs.env_name }}' == 'uat' ]]; then
+#              NAME='prod'
+#          elif [[ '${{ steps.env.outputs.env_name }}' == 'prod' ]]; then
+#              NAME=''
+#          fi
+#
+#          echo "::set-output name=env_name::$NAME"
+#
+#      - &promote
+#        name: Promote to higer env
+#        run: |-
+#          ENV=$(echo '-${{ steps.higher_env.outputs.env_name }}')
+#          LEN=${#ENV}
+#
+#          if [[ $LEN > 0 ]]; then
+#              git tag "${GITHUB_REF:0:-$LEN}"
+#              git push --tags
+#          fi
+#
+#  lobdev:
+#    name: LobDev
+#    runs-on: ubuntu-latest
+#    if: endsWith(github.ref, '-lobdev')
+#    environment: lobdev
+#    steps:
+#      - uses: actions/checkout@v2
+#      - <<: *get_env
+#      - <<: *print_msg
+#      - <<: *get_higher_env
+#      - <<: *promote
+#
+#  uat:
+#    name: UAT
+#    runs-on: ubuntu-latest
+#    if: endsWith(github.ref, '-uat')
+#    environment: uat
+#    steps:
+#      - uses: actions/checkout@v2
+#      - <<: *get_env
+#      - <<: *print_msg
+#      - <<: *get_higher_env
+#      - <<: *promote
+#
+#  prod:
+#    name: Prod
+#    runs-on: ubuntu-latest
+#    if: endsWith(github.ref, '-prod')
+#    environment: prod
+#    steps:
+#      - uses: actions/checkout@v2
+#      - <<: *get_env
+#      - <<: *print_msg
+#      - <<: *get_higher_env
+#      - <<: *promote
