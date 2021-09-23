@@ -62,9 +62,10 @@ jobs:
         run: |-
           ENV=$(echo '-${{ steps.env.outputs.env_name }}')
           LEN=${#ENV}
+          TAG=${GITHUB_REF##*/}
 
           if [[ $LEN > 0 ]]; then
-              git tag "${GITHUB_REF:0:-$LEN}-${{ steps.higher_env.outputs.env_name }}"
+              git tag "${TAG:0:-$LEN}-${{ steps.higher_env.outputs.env_name }}"
               git push --tags
           fi
 
