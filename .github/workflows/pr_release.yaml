@@ -1,0 +1,14 @@
+name: On PR - release
+
+on:
+  pull_request:
+    branches:
+      - release
+
+jobs:
+  error:
+    name: Error
+    runs-on: ubuntu-latest
+    steps:
+      - run: |
+          echo '::error::PRs are not allowed for the "release" branch.'

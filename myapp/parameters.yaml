@@ -1,0 +1,35 @@
+---
+
+# Required
+name: myapp-test
+# Required
+namespace: test
+# Optional
+labels:
+  tenant: operating-platform
+# Required
+channel: operating-platform-ch-helm/channel
+chart:
+  # Required
+  name: ocp-myapp
+  # Optional
+  version: 0.2.0
+  # Optional (TODO)
+  values: {}
+
+
+
+# metadata:
+#   name: myapp-test                              # Required
+#   namespace: test                               # Required
+#   labels:
+#     acm-app: myapp                              # Auto-generated (dir name)
+#     tenant: operating-platform                  # Optional
+# spec:
+#   channel: operating-platform-ch-helm/channel   # Required
+#   name: ocp-myapp                               # Required
+#   packageFilter:
+#     version: 0.2.0                              # Optional
+#     packageOverrides:
+#       - packageName: ocp-myapp                  # Auto-generated (spec.name)
+#         packageAlias: myapp-ffdc                # Auto-generated (metadata.name)
