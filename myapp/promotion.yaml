@@ -1,0 +1,26 @@
+---
+
+promotion:
+  dev:
+    placementRef:
+      - name: westeu
+  lobdev:
+    placementRef:
+      - name: northeu
+      - name: westeu
+  uat:
+    placementRef:
+      - name: northeu
+        priority: 0
+      - name: westeu
+        priority: 1
+      - name: westus
+        priority: 2
+      - name: eastus
+        priority: 2
+  prod:
+    placementRef:
+      - name: westus
+        priority: 0
+      - name: eastus
+        priority: 1

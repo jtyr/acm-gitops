@@ -1,0 +1,33 @@
+---
+
+apiVersion: apps.open-cluster-management.io/v1
+kind: Subscription
+metadata:
+  name: "{{ params.name }}"
+  namespace: "{{ params.namespace }}"
+  labels:
+    acm-app: "{{ app }}"
+    {%- if "labels" in params %}
+      {%- for k, v in params.labels.items() %}
+        {{- "\n" + k | indent(width=4, first=True) }}: "{{ v }}"
+      {%- endfor %}
+    {%- endif %}
+spec:
+  channel: "{{ params.channel }}"
+  name: "{{ params.chart.name }}"
+  packageFilter:
+    version: "{{ params.chart.version }}"
+  placement:
+    placementRef:
+      name: "{{ placement }}"
+  packageOverrides:
+    - packageName: "{{ params.chart.name }}"
+      packageAlias: "{{ params.name }}"
+      packageOverrides:
+        - path: spec
+          {%- if "values" in values and values["values"] | length %}
+          value:
+            {{ values["values"] | to_yaml | indent(width=12) }}
+          {%- else %}
+            {{- "\n" }}
+          {%- endif %}

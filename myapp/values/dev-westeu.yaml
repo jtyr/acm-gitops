@@ -1,0 +1,8 @@
+---
+
+# mergeMode: [top|deep]
+values:
+  aaa: bbb
+  ccc:
+    ddd:
+      - eee
