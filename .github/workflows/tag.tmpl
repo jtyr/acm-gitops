@@ -3,8 +3,12 @@ name: On tag
 on:
   push:
     tags:
-      #  <app>     -<yyyy>  <mm>     <dd>       T<hh>      <mm>      <ss>      -<env>
-      - "[a-z0-9-]+-202[1-9][01][0-9][0123][0-9]T[012][0-9][0-5][0-9][0-5][0-9]-[a-z]+"
+      #  <app>    -<yyyy>  <mm>     <dd>       T<hh>      <mm>      <ss>      -<env>
+      - "[a-z0-9]+-202[1-9][01][0-9][0123][0-9]T[012][0-9][0-5][0-9][0-5][0-9]-[a-z]+"
+      #  <app-app>          -<yyyy>  <mm>     <dd>       T<hh>      <mm>      <ss>      -<env>
+      - "[a-z0-9]+-[a-z0-9]+-202[1-9][01][0-9][0123][0-9]T[012][0-9][0-5][0-9][0-5][0-9]-[a-z]+"
+      #  <app-app-app>                -<yyyy>  <mm>     <dd>       T<hh>      <mm>      <ss>      -<env>
+      - "[a-z0-9]+-[a-z0-9]+-[a-z0-9]+-202[1-9][01][0-9][0123][0-9]T[012][0-9][0-5][0-9][0-5][0-9]-[a-z]+"
 
 jobs:
   dev:
@@ -18,28 +22,31 @@ jobs:
         with:
           token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
 
-      - &get_env
-        name: Get env from tag
-        id: env
+      - &get_info_from_tag
+        name: Get info from tag
+        id: tag
         run: |-
-          echo "::set-output name=env_name::${GITHUB_REF##*-}"
+          ENV="${GITHUB_REF##*-}"
+          APP="${GITHUB_REF:10:-${#ENV}-17}"
+          echo "::set-output name=env_name::$ENV"
+          echo "::set-output name=app_name::$APP"
 
       - &print_msg
         name: Print message
         run: |-
-          echo "Generating ${{ steps.env.outputs.env_name }} files..."
+          echo "Generating files for app=${{ steps.tag.outputs.app_name }}, env=${{ steps.tag.outputs.env_name }}..."
 
       - &get_higher_env
         name: Get higher env name
         id: higher_env
         run: |-
-          if [[ '${{ steps.env.outputs.env_name }}' == 'dev' ]]; then
+          if [[ '${{ steps.tag.outputs.env_name }}' == 'dev' ]]; then
               NAME='lobdev'
-          elif [[ '${{ steps.env.outputs.env_name }}' == 'lobdev' ]]; then
+          elif [[ '${{ steps.tag.outputs.env_name }}' == 'lobdev' ]]; then
               NAME='uat'
-          elif [[ '${{ steps.env.outputs.env_name }}' == 'uat' ]]; then
+          elif [[ '${{ steps.tag.outputs.env_name }}' == 'uat' ]]; then
               NAME='prod'
-          elif [[ '${{ steps.env.outputs.env_name }}' == 'prod' ]]; then
+          elif [[ '${{ steps.tag.outputs.env_name }}' == 'prod' ]]; then
               NAME=''
           fi
 
@@ -48,12 +55,11 @@ jobs:
       - &promote
         name: Promote to higer env
         run: |-
-          ENV=$(echo '-${{ steps.env.outputs.env_name }}')
-          LEN="${#ENV}"
+          ENV=$(echo '-${{ steps.tag.outputs.env_name }}')
           TAG="${GITHUB_REF##*/}"
 
           if [[ -n '${{ steps.higher_env.outputs.env_name }}' ]]; then
-              git tag "${TAG:0:-$LEN}-${{ steps.higher_env.outputs.env_name }}"
+              git tag "${TAG:0:-${#ENV}}-${{ steps.higher_env.outputs.env_name }}"
               git push --tags
           else
               echo '::notice::End of promotion'
@@ -66,7 +72,7 @@ jobs:
     environment: lobdev
     steps:
       - <<: *checkout
-      - <<: *get_env
+      - <<: *get_info_from_tag
       - <<: *print_msg
       - <<: *get_higher_env
       - <<: *promote
@@ -78,7 +84,7 @@ jobs:
     environment: uat
     steps:
       - <<: *checkout
-      - <<: *get_env
+      - <<: *get_info_from_tag
       - <<: *print_msg
       - <<: *get_higher_env
       - <<: *promote
@@ -90,7 +96,7 @@ jobs:
     environment: prod
     steps:
       - <<: *checkout
-      - <<: *get_env
+      - <<: *get_info_from_tag
       - <<: *print_msg
       - <<: *get_higher_env
       - <<: *promote
