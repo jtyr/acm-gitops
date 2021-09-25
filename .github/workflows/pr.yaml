@@ -5,7 +5,10 @@ on:
     branches:
       - master
     paths-ignore:
+      - README.md
       - .github/**
+      - .gitignore
+      - .pre-commit-config.yaml
 
 jobs:
   lint:
