@@ -52,7 +52,7 @@ jobs:
 
           # Get the next free tag
           for REL in $(seq 100); do
-            TAG="${{ steps.app.outputs.app_name }}-${{ steps.version.outputs.result }}-$REL-$FIST_ENV"
+            TAG="${{ steps.app.outputs.app_name }}-${{ steps.version.outputs.result }}-$REL-$FIRST_ENV"
 
             TAG_EXISTS=$(git tag -l "$TAG" | wc -l)
 
