@@ -38,7 +38,7 @@ jobs:
         id: version
         uses: mikefarah/yq@master
         with:
-          cmd: yq e '.chart.version' ${{ steps.app.outputs.app_name }}/params.yaml
+          cmd: yq e '.chart.version' ${{ steps.app.outputs.app_name }}/parameters.yaml
 
       - name: Create and push tag
         run: |

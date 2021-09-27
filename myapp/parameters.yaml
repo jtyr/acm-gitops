@@ -18,7 +18,8 @@ chart:
   # Rrequired
   version: 0.2.0
   # Optional
-  values: {}
+  values:
+    xxx: yyy
 
 
 # metadata:
