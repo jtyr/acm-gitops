@@ -29,8 +29,7 @@ jobs:
           # Extract app name
           APP_NO_ENV="${TAG%-*}"
           APP_NO_REL="${APP_NO_ENV%-*}"
-          APP_NO_VER="${APP_NO_REL%-*}"
-          APP="${APP_NO_VER:10}"
+          APP="${APP_NO_REL%-*}"
 
           echo "::set-output name=env_name::$ENV"
           echo "::set-output name=app_name::$APP"
