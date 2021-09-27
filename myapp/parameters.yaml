@@ -1,5 +1,8 @@
 ---
 
+subTemplate: subscription_v1
+appTemplate: application_v1
+
 # Required
 name: myapp-test
 # Required
@@ -12,11 +15,10 @@ channel: operating-platform-ch-helm/channel
 chart:
   # Required
   name: ocp-myapp
-  # Optional
+  # Rrequired
   version: 0.2.0
-  # Optional (TODO)
+  # Optional
   values: {}
-
 
 
 # metadata:

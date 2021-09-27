@@ -10,5 +10,7 @@ jobs:
     name: Error
     runs-on: ubuntu-latest
     steps:
-      - run: |
+      - name: Show error
+        run: |
           echo '::error::PRs are not allowed for the "release" branch.'
+          exit 1

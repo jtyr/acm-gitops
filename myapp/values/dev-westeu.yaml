@@ -1,6 +1,7 @@
 ---
 
-# mergeMode: [top|deep]
+#deepMerge: yes
+
 values:
   aaa: bbb
   ccc:

@@ -27,7 +27,7 @@ spec:
         - path: spec
           {%- if "values" in values and values["values"] | length %}
           value:
-            {{ values["values"] | to_yaml | indent(width=12) }}
+            {{ params.chart['values'] | default({}) | merge(values["values"], values.deepMerge | default(false)) | to_yaml | indent(width=12) }}
           {%- else %}
             {{- "\n" }}
           {%- endif %}

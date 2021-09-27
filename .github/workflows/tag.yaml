@@ -1,187 +1,118 @@
-name: On tag
+1name: On tag
+
 on:
   push:
     tags:
-      #  <app>    -<yyyy>  <mm>     <dd>       T<hh>      <mm>      <ss>      -<env>
-      - "[a-z0-9]+-202[1-9][01][0-9][0123][0-9]T[012][0-9][0-5][0-9][0-5][0-9]-[a-z]+"
-      #  <app-app>          -<yyyy>  <mm>     <dd>       T<hh>      <mm>      <ss>      -<env>
-      - "[a-z0-9]+-[a-z0-9]+-202[1-9][01][0-9][0123][0-9]T[012][0-9][0-5][0-9][0-5][0-9]-[a-z]+"
-      #  <app-app-app>                -<yyyy>  <mm>     <dd>       T<hh>      <mm>      <ss>      -<env>
-      - "[a-z0-9]+-[a-z0-9]+-[a-z0-9]+-202[1-9][01][0-9][0123][0-9]T[012][0-9][0-5][0-9][0-5][0-9]-[a-z]+"
+      #  <app>    -<ver>            -<rel> -<env>
+      - "[a-z0-9]+-[0-9].[0-9].[0-9]-[0-9]+-[a-z]+"
+      #  <app>-<app>        -<ver>            -<rel> -<env>
+      - "[a-z0-9]+-[a-z0-9]+-[0-9].[0-9].[0-9]-[0-9]+-[a-z]+"
+      #  <app>-<app>-<app>            -<ver>            -<rel> -<env>
+      - "[a-z0-9]+-[a-z0-9]+-[a-z0-9]+-[0-9].[0-9].[0-9]-[0-9]+-[a-z]+"
+
 jobs:
-  dev:
-    name: Dev
+  get_env_info:
+    name: Get info from tag
     runs-on: ubuntu-latest
-    if: endsWith(github.ref, '-dev')
-    environment: dev
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Get info
+        id: info
+        run: |-
+          # TAG
+          TAG="${GITHUB_REF:10}"
+
+          # Extract env name
+          ENV="${TAG##*-}"
+
+          # Extract app name
+          APP_NO_ENV="${TAG%-*}"
+          APP_NO_REL="${APP_NO_ENV%-*}"
+          APP_NO_VER="${APP_NO_REL%-*}"
+          APP="${APP_NO_VER:10}"
+
+          echo "::set-output name=env_name::$ENV"
+          echo "::set-output name=app_name::$APP"
+          echo "::set-output name=tag::$TAG"
+    outputs:
+      env_name: ${{ steps.info.outputs.env_name }}
+      app_name: ${{ steps.info.outputs.app_name }}
+
+  deployment:
+    name: Deployment into ${{ needs.get_env_info.outputs.env_name }}
+    runs-on: ubuntu-latest
+    environment: ${{ needs.get_env_info.outputs.env_name }}
+    needs: get_env_info
+    env:
+      ACM_SCRIPT: ./github/acm.py -v
+      APP_NAME: ${{ needs.get_env_info.outputs.app_name }}
+      ENV_NAME: ${{ needs.get_env_info.outputs.env_name }}
+      TAG: ${{ needs.get_env_info.outputs.tag }}
     steps:
       - uses: actions/checkout@v2
         with:
           token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
-      - name: Get info from tag
-        id: tag
-        run: |-
-          ENV="${GITHUB_REF##*-}"
-          APP="${GITHUB_REF:10:-${#ENV}-17}"
-          echo "::set-output name=env_name::$ENV"
-          echo "::set-output name=app_name::$APP"
-      - name: Print message
-        run: |-
-          echo "Generating files for app=${{ steps.tag.outputs.app_name }}, env=${{ steps.tag.outputs.env_name }}..."
-      - name: Get higher env name
-        id: higher_env
-        run: |-
-          if [[ '${{ steps.tag.outputs.env_name }}' == 'dev' ]]; then
-              NAME='lobdev'
-          elif [[ '${{ steps.tag.outputs.env_name }}' == 'lobdev' ]]; then
-              NAME='uat'
-          elif [[ '${{ steps.tag.outputs.env_name }}' == 'uat' ]]; then
-              NAME='prod'
-          elif [[ '${{ steps.tag.outputs.env_name }}' == 'prod' ]]; then
-              NAME=''
-          fi
 
-          echo "::set-output name=env_name::$NAME"
-      - name: Promote to higer env
-        run: |-
-          ENV=$(echo '-${{ steps.tag.outputs.env_name }}')
-          TAG="${GITHUB_REF##*/}"
-
-          if [[ -n '${{ steps.higher_env.outputs.env_name }}' ]]; then
-              git tag "${TAG:0:-${#ENV}}-${{ steps.higher_env.outputs.env_name }}"
-              git push --tags
-          else
-              echo '::notice::End of promotion'
-          fi
-  lobdev:
-    name: LobDev
-    runs-on: ubuntu-latest
-    if: endsWith(github.ref, '-lobdev')
-    environment: lobdev
-    steps:
-      - uses: actions/checkout@v2
+      - name: Getting the release branch
+        uses: actions/checkout@v2
         with:
-          token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
-      - name: Get info from tag
-        id: tag
+          ref: release
+          path: release
+
+      - name: Generate ACM Application and Subscription and deploy it
         run: |-
-          ENV="${GITHUB_REF##*-}"
-          APP="${GITHUB_REF:10:-${#ENV}-17}"
-          echo "::set-output name=env_name::$ENV"
-          echo "::set-output name=app_name::$APP"
-      - name: Print message
+          export ACM_RELEASE_PATH="$GITHUB_WORKSPACE/release"
+
+          for ZONES in $($ACM_SCRIPT get zones "$ENV_NAME"); do
+            IFS=',' read -ra ZONE <<< "$ZONES"
+
+            for Z in ${ZONE[@]}; do
+              # Generate
+              $ACM_SCRIPT generate --verbose "$APP_NAME" "$ENV_NAME" "$Z"
+            done
+
+            if [[ $(git status --porcelain | wc -l) > 0 ]]; then
+              # Commit and push
+              git -C "$ACM_RELEASE_PATH" commit -am "Changes from $TAG - zone: $ZONES"
+              git -C "$ACM_RELEASE_PATH" push
+
+              echo 'TODO: Waiting for deployment status...'
+
+              # TODO: Tag failure
+              #git tag "$TAG-$Z-fail"
+              #git tag "$TAG-fail"
+              #echo '::error::Deployment failed'
+              #exit 1
+
+              # Tag success/failure
+              for Z in ${ZONE[@]}; do
+                git tag "$TAG-$Z-success"
+              done
+            fi
+          done
+
+          # Tag successful env deployment
+          git tag "$TAG-success"
+
+      - name: Get next env name
+        id: next_env
         run: |-
-          echo "Generating files for app=${{ steps.tag.outputs.app_name }}, env=${{ steps.tag.outputs.env_name }}..."
-      - name: Get higher env name
-        id: higher_env
-        run: |-
-          if [[ '${{ steps.tag.outputs.env_name }}' == 'dev' ]]; then
-              NAME='lobdev'
-          elif [[ '${{ steps.tag.outputs.env_name }}' == 'lobdev' ]]; then
-              NAME='uat'
-          elif [[ '${{ steps.tag.outputs.env_name }}' == 'uat' ]]; then
-              NAME='prod'
-          elif [[ '${{ steps.tag.outputs.env_name }}' == 'prod' ]]; then
-              NAME=''
+          NAME=$($ACM_SCRIPT get next-env "$APP_NAME" "$ENV_NAME")
+
+          if [[ -z "$NAME" ]]; then
+            echo '::error::Failed to get next-env'
+            exit 1
           fi
 
           echo "::set-output name=env_name::$NAME"
+
       - name: Promote to higer env
         run: |-
-          ENV=$(echo '-${{ steps.tag.outputs.env_name }}')
-          TAG="${GITHUB_REF##*/}"
-
-          if [[ -n '${{ steps.higher_env.outputs.env_name }}' ]]; then
-              git tag "${TAG:0:-${#ENV}}-${{ steps.higher_env.outputs.env_name }}"
-              git push --tags
+          if [[ -n '${{ steps.next_env.outputs.env_name }}' ]]; then
+            # Create tag to trigger next env deployment
+            git tag "${TAG%-*}-${{ steps.next_env.outputs.env_name }}"
+            git push --tags
           else
-              echo '::notice::End of promotion'
-          fi
-  uat:
-    name: UAT
-    runs-on: ubuntu-latest
-    if: endsWith(github.ref, '-uat')
-    environment: uat
-    steps:
-      - uses: actions/checkout@v2
-        with:
-          token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
-      - name: Get info from tag
-        id: tag
-        run: |-
-          ENV="${GITHUB_REF##*-}"
-          APP="${GITHUB_REF:10:-${#ENV}-17}"
-          echo "::set-output name=env_name::$ENV"
-          echo "::set-output name=app_name::$APP"
-      - name: Print message
-        run: |-
-          echo "Generating files for app=${{ steps.tag.outputs.app_name }}, env=${{ steps.tag.outputs.env_name }}..."
-      - name: Get higher env name
-        id: higher_env
-        run: |-
-          if [[ '${{ steps.tag.outputs.env_name }}' == 'dev' ]]; then
-              NAME='lobdev'
-          elif [[ '${{ steps.tag.outputs.env_name }}' == 'lobdev' ]]; then
-              NAME='uat'
-          elif [[ '${{ steps.tag.outputs.env_name }}' == 'uat' ]]; then
-              NAME='prod'
-          elif [[ '${{ steps.tag.outputs.env_name }}' == 'prod' ]]; then
-              NAME=''
-          fi
-
-          echo "::set-output name=env_name::$NAME"
-      - name: Promote to higer env
-        run: |-
-          ENV=$(echo '-${{ steps.tag.outputs.env_name }}')
-          TAG="${GITHUB_REF##*/}"
-
-          if [[ -n '${{ steps.higher_env.outputs.env_name }}' ]]; then
-              git tag "${TAG:0:-${#ENV}}-${{ steps.higher_env.outputs.env_name }}"
-              git push --tags
-          else
-              echo '::notice::End of promotion'
-          fi
-  prod:
-    name: Prod
-    runs-on: ubuntu-latest
-    if: endsWith(github.ref, '-prod')
-    environment: prod
-    steps:
-      - uses: actions/checkout@v2
-        with:
-          token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
-      - name: Get info from tag
-        id: tag
-        run: |-
-          ENV="${GITHUB_REF##*-}"
-          APP="${GITHUB_REF:10:-${#ENV}-17}"
-          echo "::set-output name=env_name::$ENV"
-          echo "::set-output name=app_name::$APP"
-      - name: Print message
-        run: |-
-          echo "Generating files for app=${{ steps.tag.outputs.app_name }}, env=${{ steps.tag.outputs.env_name }}..."
-      - name: Get higher env name
-        id: higher_env
-        run: |-
-          if [[ '${{ steps.tag.outputs.env_name }}' == 'dev' ]]; then
-              NAME='lobdev'
-          elif [[ '${{ steps.tag.outputs.env_name }}' == 'lobdev' ]]; then
-              NAME='uat'
-          elif [[ '${{ steps.tag.outputs.env_name }}' == 'uat' ]]; then
-              NAME='prod'
-          elif [[ '${{ steps.tag.outputs.env_name }}' == 'prod' ]]; then
-              NAME=''
-          fi
-
-          echo "::set-output name=env_name::$NAME"
-      - name: Promote to higer env
-        run: |-
-          ENV=$(echo '-${{ steps.tag.outputs.env_name }}')
-          TAG="${GITHUB_REF##*/}"
-
-          if [[ -n '${{ steps.higher_env.outputs.env_name }}' ]]; then
-              git tag "${TAG:0:-${#ENV}}-${{ steps.higher_env.outputs.env_name }}"
-              git push --tags
-          else
-              echo '::notice::End of promotion'
+            echo '::notice::End of promotion'
           fi
