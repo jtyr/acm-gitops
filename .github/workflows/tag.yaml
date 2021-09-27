@@ -38,6 +38,7 @@ jobs:
     outputs:
       env_name: ${{ steps.info.outputs.env_name }}
       app_name: ${{ steps.info.outputs.app_name }}
+      tag: ${{ steps.info.outputs.tag }}
 
   deployment:
     name: Deployment into ${{ needs.get_env_info.outputs.env_name }}
@@ -63,6 +64,8 @@ jobs:
       - name: Generate ACM Application and Subscription and deploy it
         run: |-
           export ACM_RELEASE_PATH="$GITHUB_WORKSPACE/release"
+
+          echo "APP=$APP_NAME, ENV=$ENV_NAME, TAG=$TAG"
 
           for ZONES in $($ACM_SCRIPT get zones "$ENV_NAME"); do
             IFS=',' read -ra ZONE <<< "$ZONES"
