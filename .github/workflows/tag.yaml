@@ -69,7 +69,7 @@ jobs:
 
             for Z in ${ZONE[@]}; do
               # Generate
-              $ACM_SCRIPT generate --verbose "$APP_NAME" "$ENV_NAME" "$Z"
+              $ACM_SCRIPT generate "$APP_NAME" "$ENV_NAME" "$Z"
             done
 
             if [[ $(git status --porcelain | wc -l) > 0 ]]; then
