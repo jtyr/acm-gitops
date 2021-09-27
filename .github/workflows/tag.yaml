@@ -45,7 +45,7 @@ jobs:
     environment: ${{ needs.get_env_info.outputs.env_name }}
     needs: get_env_info
     env:
-      ACM_SCRIPT: ./github/acm.py -v
+      ACM_SCRIPT: ./.github/acm.py -v
       APP_NAME: ${{ needs.get_env_info.outputs.app_name }}
       ENV_NAME: ${{ needs.get_env_info.outputs.env_name }}
       TAG: ${{ needs.get_env_info.outputs.tag }}

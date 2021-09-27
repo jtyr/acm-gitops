@@ -18,7 +18,7 @@ jobs:
     runs-on: ubuntu-latest
     if: github.event.pull_request.merged == true
     env:
-      ACM_SCRIPT: ./github/acm.py -v
+      ACM_SCRIPT: ./.github/acm.py -v
     steps:
       - uses: actions/checkout@v2
         with:
