@@ -74,6 +74,8 @@ jobs:
 
             if [[ $(git status --porcelain | wc -l) > 0 ]]; then
               # Commit and push
+              git config --global user.email 'gitops@finastra.com'
+              git config --global user.name 'GitHub Action'
               git -C "$ACM_RELEASE_PATH" commit -am "Changes from $TAG - zone: $ZONES"
               git -C "$ACM_RELEASE_PATH" push
 
