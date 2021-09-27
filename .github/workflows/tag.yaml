@@ -64,9 +64,7 @@ jobs:
         run: |-
           export ACM_RELEASE_PATH="$GITHUB_WORKSPACE/release"
 
-          echo "APP=$APP_NAME, ENV=$ENV_NAME, TAG=$TAG"
-
-          for ZONES in $($ACM_SCRIPT get zones "$ENV_NAME"); do
+          for ZONES in $($ACM_SCRIPT get zones "$APP_NAME" "$ENV_NAME"); do
             IFS=',' read -ra ZONE <<< "$ZONES"
 
             for Z in ${ZONE[@]}; do
@@ -101,11 +99,6 @@ jobs:
         id: next_env
         run: |-
           NAME=$($ACM_SCRIPT get next-env "$APP_NAME" "$ENV_NAME")
-
-          if [[ -z "$NAME" ]]; then
-            echo '::error::Failed to get next-env'
-            exit 1
-          fi
 
           echo "::set-output name=env_name::$NAME"
 
