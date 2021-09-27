@@ -1,15 +1,15 @@
 ---
 
 promotion:
-  dev:
-    placementRef:
+  - env: dev
+    placements:
       - name: westeu
-  lobdev:
-    placementRef:
+  - env: lobdev
+    placements:
       - name: northeu
       - name: westeu
-  uat:
-    placementRef:
+  - env: uat
+    placements:
       - name: northeu
         priority: 0
       - name: westeu
@@ -18,8 +18,8 @@ promotion:
         priority: 2
       - name: eastus
         priority: 2
-  prod:
-    placementRef:
+  - env: prod
+    placements:
       - name: westus
         priority: 0
       - name: eastus

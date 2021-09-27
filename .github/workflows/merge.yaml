@@ -17,17 +17,54 @@ jobs:
     name: Tagging
     runs-on: ubuntu-latest
     if: github.event.pull_request.merged == true
+    env:
+      ACM_SCRIPT: ./github/acm.py -v
     steps:
       - uses: actions/checkout@v2
         with:
           token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+          fetch-depth: 0
 
       - name: Get app name
         id: app
         run: |
-          echo ::set-output name=app_name::myapp
+          # Get the app name from changes done since the last tag
+          LAST_TAG=$(git tag | sort -V | tail -n1 | egrep '^.+$')
+          APP_NAME=$(git diff $LAST_TAG --name-only | egrep -v '^\.github' | grep -Po '^[a-z0-9-]+/' | sort -u | sed 's,/$,,')
+
+          echo ::set-output name=app_name::$APP_NAME
+
+      - name: Get version
+        id: version
+        uses: mikefarah/yq@master
+        with:
+          cmd: yq e '.chart.version' ${{ steps.app.outputs.app_name }}/params.yaml
 
       - name: Create and push tag
         run: |
-          git tag ${{ steps.app.outputs.app_name }}-$(date '+%Y%m%dT%H%M%S')-dev
+          # Get first env name
+          FIRST_ENV=$($ACM_SCRIPT get first-env '${{ steps.app.outputs.app_name }}')
+
+          if [[ -z "$FIRST_ENV" ]]; then
+             echo '::error::Failed to get first-env'
+             exit 1
+          fi
+
+          # Get the next free tag
+          for REL in $(seq 100); do
+            TAG="${{ steps.app.outputs.app_name }}-${{ steps.version.outputs.result }}-$REL-$FIST_ENV"
+
+            TAG_EXISTS=$(git tag -l "$TAG" | wc -l)
+
+            if [[ "$TAG_EXISTS" == '0' ]]; then
+              break
+            fi
+          done
+
+          if [[ "$TAG_EXISTS" != '0' ]]; then
+            echo '::error::Failed to get new tag'
+            exit 1
+          fi
+
+          git tag "$TAG"
           git push --tags
