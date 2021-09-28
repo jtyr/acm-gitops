@@ -1,6 +1,6 @@
 ---
 
-#deepMerge: yes
+deepMerge: yes
 
 values:
   aaa: bbb
