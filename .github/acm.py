@@ -164,9 +164,15 @@ class Generate(Common):
     # Reads values file for particular application, environment and zone
     def _get_values(self):
         val_file = "%s-%s.yaml" % (self.env, self.zone)
+        val_file_full = os.path.join(
+            self.meta_path,
+            self.app,
+            "values",
+            val_file,
+        )
 
-        if not os.path.exists(val_file):
-            self.log.debug("No zone-specific values are set")
+        if not os.path.exists(val_file_full):
+            self.log.debug("No zone-specific values are set in '%s'" % val_file_full)
 
             self._values = {
                 "values": {},
@@ -176,14 +182,7 @@ class Generate(Common):
             self.log.debug("Reading values file '%s'" % val_file)
 
             try:
-                self._values = self.tools.read_yaml_file(
-                    os.path.join(
-                        self.meta_path,
-                        self.app,
-                        "values",
-                        val_file,
-                    )
-                )
+                self._values = self.tools.read_yaml_file(val_file_full)
             except Exception as e:
                 raise Exception("cannot read values file '%s': %s" % (val_file, e))
 
