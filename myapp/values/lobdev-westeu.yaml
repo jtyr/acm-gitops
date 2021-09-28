@@ -1,3 +1,10 @@
 ---
 
-values: {}
+deepMerge: no
+
+values:
+  aaa: bbb
+  ccc:
+    ddd:
+      - eee
+      - fff
