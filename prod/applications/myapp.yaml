@@ -5,8 +5,8 @@ kind: Application
 metadata:
   name: "myapp-test-prod"
   labels:
+    tenant: operating-platform
     acm-app: "myapp"
-    tenant: "operating-platform"
 spec:
   selector:
     matchLabels:
