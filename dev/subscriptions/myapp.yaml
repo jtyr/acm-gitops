@@ -21,10 +21,3 @@ spec:
       packageAlias: "myapp-test"
       packageOverrides:
         - path: spec
-          value:
-            aaa: bbb
-            ccc:
-              ddd:
-                - eee
-                - fff
-            xxx: yyy
