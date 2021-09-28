@@ -246,9 +246,7 @@ function tag_deployment_next_env() {
 # Create and push tag to trigger the next step of the promotion
 function tag_deployment_promote() {
     # Check required env vars
-    if [[ -z $NEXT_ENV ]]; then
-        msg 'E' 'No NEXT_ENV defined' 1
-    elif [[ -z $TAG ]]; then
+    if [[ -z $TAG ]]; then
         msg 'E' 'No TAG defined' 1
     fi
 
