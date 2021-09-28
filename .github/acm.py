@@ -210,6 +210,36 @@ class Generate(Common):
     def _jinja2_filter_to_yaml(self, data):
         return yaml.dump(data, Dumper=MyDumper, default_flow_style=False)
 
+    # Generate Application resource
+    def application(self):
+        self.log.info("Generating Application")
+
+        try:
+            template = self.j2e.get_template(self.application_template)
+
+            app = template.render(
+                app=self.app,
+                env=self.env,
+                params=self._get_params(),
+                values=self._get_values(),
+            )
+        except Exception as e:
+            raise Exception("templating error: %s" % e)
+
+        target_file = os.path.join(
+            self.release_path,
+            self.env,
+            "applications",
+            "%s.yaml" % self.app,
+        )
+
+        try:
+            self.tools.write_file(app, target_file=target_file)
+        except Exception as e:
+            raise Exception(
+                "failed to write Subscription into file '%s': %s" % (target_file, e)
+            )
+
     # Generate Subscription resource
     def subscription(self):
         self.log.info("Generating Subscription")
@@ -219,6 +249,8 @@ class Generate(Common):
 
             sub = template.render(
                 app=self.app,
+                env=self.env,
+                zone=self.zone,
                 placement="%s-%s" % (self.env, self.zone),
                 params=self._get_params(),
                 values=self._get_values(),
@@ -230,40 +262,11 @@ class Generate(Common):
             self.release_path,
             self.env,
             "subscriptions",
-            "%s.yaml" % self.app,
-        )
-
-        try:
-            self.tools.write_file(sub, target_file=target_file)
-        except Exception as e:
-            raise Exception(
-                "failed to write Subscription into file '%s': %s" % (target_file, e)
-            )
-
-    # Generate Application resource
-    def application(self):
-        self.log.info("Generating Application")
-
-        try:
-            template = self.j2e.get_template(self.application_template)
-
-            app = template.render(
-                app=self.app,
-                params=self._get_params(),
-                values=self._get_values(),
-            )
-        except Exception as e:
-            raise Exception("templating error: %s" % e)
-
-        target_file = os.path.join(
-            self.release_path,
-            self.env,
-            "applications",
             "%s-%s.yaml" % (self.app, self.zone),
         )
 
         try:
-            self.tools.write_file(app, target_file=target_file)
+            self.tools.write_file(sub, target_file=target_file)
         except Exception as e:
             raise Exception(
                 "failed to write Subscription into file '%s': %s" % (target_file, e)
@@ -570,16 +573,16 @@ def main():
         )
 
         try:
-            gen.subscription()
-        except Exception as e:
-            log.error("Failed to generate Subscription: %s" % e)
-            sys.exit(1)
-
-        try:
             gen.application()
         except Exception as e:
             traceback.print_exc(file=sys.stderr)
             log.error("Failed to generate Application: %s" % e)
+            sys.exit(1)
+
+        try:
+            gen.subscription()
+        except Exception as e:
+            log.error("Failed to generate Subscription: %s" % e)
             sys.exit(1)
     elif args.action.startswith("get_zones"):
         get = Get(

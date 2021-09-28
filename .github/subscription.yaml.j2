@@ -3,7 +3,7 @@
 apiVersion: apps.open-cluster-management.io/v1
 kind: Subscription
 metadata:
-  name: "{{ params.name }}"
+  name: "{{ params.name }}-{{ env }}-{{ zone }}"
   namespace: "{{ params.namespace }}"
   labels:
     acm-app: "{{ app }}"

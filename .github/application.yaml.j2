@@ -3,7 +3,7 @@
 apiVersion: app.k8s.io/v1beta1
 kind: Application
 metadata:
-  name: "{{ params.name }}"
+  name: "{{ params.name }}-{{ env }}"
   labels:
     acm-app: "{{ app }}"
     {%- if "labels" in params %}
