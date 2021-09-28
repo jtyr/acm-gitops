@@ -20,7 +20,7 @@ chart:
   # Optional
   values:
     ccc:
-      xxx: zzz
+      xxx: yyy
 
 
 # metadata:
