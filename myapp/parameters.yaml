@@ -19,7 +19,7 @@ chart:
   version: 0.2.0
   # Optional
   values:
-    xxx: zzz
+    xxx: yyy
 
 
 # metadata:

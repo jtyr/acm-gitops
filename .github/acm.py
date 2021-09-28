@@ -163,6 +163,8 @@ class Generate(Common):
 
     # Reads values file for particular application, environment and zone
     def _get_values(self):
+        val_file = "%s-%s.yaml" % (self.env, self.zone)
+
         if not os.path.exists(val_file):
             self.log.debug("No zone-specific values are set")
 
@@ -171,8 +173,6 @@ class Generate(Common):
             }
 
         if self._values is None:
-            val_file = "%s-%s.yaml" % (self.env, self.zone)
-
             self.log.debug("Reading values file '%s'" % val_file)
 
             try:
