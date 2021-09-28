@@ -6,8 +6,8 @@ metadata:
   name: "myapp-test-lobdev-westeu"
   namespace: "test"
   labels:
+    tenant: operating-platform
     acm-app: "myapp"
-    tenant: "operating-platform"
 spec:
   channel: "operating-platform-ch-helm/channel"
   name: "ocp-myapp"
