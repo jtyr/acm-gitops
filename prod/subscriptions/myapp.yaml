@@ -15,7 +15,7 @@ spec:
     version: "0.2.0"
   placement:
     placementRef:
-      name: "prod-westus"
+      name: "prod-eastus"
   packageOverrides:
     - packageName: "ocp-myapp"
       packageAlias: "myapp-test"
