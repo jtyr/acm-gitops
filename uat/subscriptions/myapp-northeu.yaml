@@ -6,8 +6,8 @@ metadata:
   name: "myapp-test-uat-northeu"
   namespace: "test"
   labels:
+    tenant: operating-platform
     acm-app: "myapp"
-    tenant: "operating-platform"
 spec:
   channel: "operating-platform-ch-helm/channel"
   name: "ocp-myapp"
@@ -19,5 +19,3 @@ spec:
   packageOverrides:
     - packageName: "ocp-myapp"
       packageAlias: "myapp-test"
-      packageOverrides:
-        - path: spec
