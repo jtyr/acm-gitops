@@ -57,8 +57,8 @@ jobs:
       - name: Get next env name
         id: next_env
         run: |-
-          $STEPS_SCRIPT tag_deployment_next_env
+          $STEPS_SCRIPT tag deployment_next_env
 
       - name: Promote to higer env
         run: |-
-          $STEPS_SCRIPT deployment_promote
+          $STEPS_SCRIPT tag deployment_promote
