@@ -1,0 +1,23 @@
+---
+
+apiVersion: apps.open-cluster-management.io/v1
+kind: Subscription
+metadata:
+  name: "myapp-test-uat-northeu"
+  namespace: "test"
+  labels:
+    acm-app: "myapp"
+    tenant: "operating-platform"
+spec:
+  channel: "operating-platform-ch-helm/channel"
+  name: "ocp-myapp"
+  packageFilter:
+    version: "0.2.0"
+  placement:
+    placementRef:
+      name: "uat-northeu"
+  packageOverrides:
+    - packageName: "ocp-myapp"
+      packageAlias: "myapp-test"
+      packageOverrides:
+        - path: spec
