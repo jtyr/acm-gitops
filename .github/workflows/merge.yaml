@@ -50,8 +50,8 @@ jobs:
              exit 1
           fi
 
-          # Get the next free tag
-          for REL in $(seq 100); do
+          # Get the next free tag (max 300 iterations without version change)
+          for REL in {1..300}; do
             TAG="${{ steps.app.outputs.app_name }}-${{ steps.version.outputs.result }}-$REL-$FIRST_ENV"
 
             TAG_EXISTS=$(git tag -l "$TAG" | wc -l)
