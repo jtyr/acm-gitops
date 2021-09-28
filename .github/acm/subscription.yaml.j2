@@ -6,12 +6,10 @@ metadata:
   name: "{{ params.name }}-{{ env }}-{{ zone }}"
   namespace: "{{ params.namespace }}"
   labels:
-    acm-app: "{{ app }}"
-    {%- if "labels" in params %}
-      {%- for k, v in params.labels.items() %}
-        {{- "\n" + k | indent(width=4, first=True) }}: "{{ v }}"
-      {%- endfor %}
+    {%- if params.labels %}
+    {{ params.labels | to_yaml | indent(width=4) }}
     {%- endif %}
+    acm-app: "{{ app }}"
 spec:
   channel: "{{ params.channel }}"
   name: "{{ params.chart.name }}"
@@ -23,11 +21,9 @@ spec:
   packageOverrides:
     - packageName: "{{ params.chart.name }}"
       packageAlias: "{{ params.name }}"
+      {%- if values["values"] %}
       packageOverrides:
         - path: spec
-          {%- if "values" in values and values["values"] | length %}
           value:
-            {{ params.chart['values'] | default({}) | merge(values["values"], values.deepMerge | default(false)) | to_yaml | indent(width=12) }}
-          {%- else %}
-            {{- "\n" }}
-          {%- endif %}
+            {{ params.chart['values'] | merge(values["values"], values.deepMerge) | to_yaml | indent(width=12) }}
+      {%- endif %}

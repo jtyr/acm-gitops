@@ -5,12 +5,10 @@ kind: Application
 metadata:
   name: "{{ params.name }}-{{ env }}"
   labels:
-    acm-app: "{{ app }}"
-    {%- if "labels" in params %}
-      {%- for k, v in params.labels.items() %}
-        {{- "\n" + k | indent(width=4, first=True) }}: "{{ v }}"
-      {%- endfor %}
+    {%- if params.labels %}
+    {{ params.labels | to_yaml | indent(width=4) }}
     {%- endif %}
+    acm-app: "{{ app }}"
 spec:
   selector:
     matchLabels:

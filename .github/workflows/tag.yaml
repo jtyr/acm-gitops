@@ -10,45 +10,35 @@ on:
       #  <app>-<app>-<app>            -<ver>            -<rel> -<env>
       - "[a-z0-9]+-[a-z0-9]+-[a-z0-9]+-[0-9].[0-9].[0-9]-[0-9]+-[a-z]+"
 
+env:
+  STEPS_SCRIPT: ./.github/steps.sh
+
 jobs:
-  get_env_info:
+  info:
     name: Get info from tag
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
 
       - name: Get info
-        id: info
+        id: get
         run: |-
-          # TAG
-          TAG="${GITHUB_REF:10}"
+          $STEPS_SCRIPT tag info_get
 
-          # Extract env name
-          ENV="${TAG##*-}"
-
-          # Extract app name
-          APP_NO_ENV="${TAG%-*}"
-          APP_NO_REL="${APP_NO_ENV%-*}"
-          APP="${APP_NO_REL%-*}"
-
-          echo "::set-output name=env_name::$ENV"
-          echo "::set-output name=app_name::$APP"
-          echo "::set-output name=tag::$TAG"
     outputs:
-      env_name: ${{ steps.info.outputs.env_name }}
-      app_name: ${{ steps.info.outputs.app_name }}
-      tag: ${{ steps.info.outputs.tag }}
+      env_name: ${{ steps.get.outputs.env_name }}
+      app_name: ${{ steps.get.outputs.app_name }}
+      tag: ${{ steps.get.outputs.tag }}
 
   deployment:
-    name: Deployment into ${{ needs.get_env_info.outputs.env_name }}
+    name: Deployment into ${{ needs.info.outputs.env_name }}
     runs-on: ubuntu-latest
-    environment: ${{ needs.get_env_info.outputs.env_name }}
-    needs: get_env_info
+    environment: ${{ needs.info.outputs.env_name }}
+    needs: info
     env:
-      ACM_SCRIPT: ./.github/acm.py -v
-      APP_NAME: ${{ needs.get_env_info.outputs.app_name }}
-      ENV_NAME: ${{ needs.get_env_info.outputs.env_name }}
-      TAG: ${{ needs.get_env_info.outputs.tag }}
+      APP_NAME: ${{ needs.info.outputs.app_name }}
+      ENV_NAME: ${{ needs.info.outputs.env_name }}
+      TAG: ${{ needs.info.outputs.tag }}
     steps:
       - uses: actions/checkout@v2
         with:
@@ -62,61 +52,13 @@ jobs:
 
       - name: Generate ACM Application and Subscription and deploy it
         run: |-
-          set -x
-
-          export ACM_RELEASE_PATH="$GITHUB_WORKSPACE/.release"
-
-          for ZONES in $($ACM_SCRIPT get zones "$APP_NAME" "$ENV_NAME"); do
-            IFS=',' read -ra ZONE <<< "$ZONES"
-
-            for Z in ${ZONE[@]}; do
-              # Generate
-              $ACM_SCRIPT generate "$APP_NAME" "$ENV_NAME" "$Z"
-            done
-
-            if [[ $(git -C "$ACM_RELEASE_PATH" status --porcelain | wc -l) > 0 ]]; then
-              # Commit and push
-              git config --global user.email 'gitops@finastra.com'
-              git config --global user.name 'GitHub Action'
-              git -C "$ACM_RELEASE_PATH" add -A
-              git -C "$ACM_RELEASE_PATH" commit -am "Changes from $TAG - zone: $ZONES"
-              git -C "$ACM_RELEASE_PATH" push
-
-              echo 'TODO: Waiting for deployment status...'
-
-              # TODO: Tag failure
-              #git tag "$TAG-$Z-fail"
-              #git tag "$TAG-fail"
-              #git push --tags
-              #echo '::error::Deployment failed'
-              #exit 1
-
-              # Tag success/failure
-              for Z in ${ZONE[@]}; do
-                git tag "$TAG-$Z-success"
-              done
-            fi
-          done
-
-          # Tag successful env deployment
-          git tag "$TAG-success"
-
-          # Push all success tags
-          git push --tags
+          $STEPS_SCRIPT tag deployment_generate_deploy
 
       - name: Get next env name
         id: next_env
         run: |-
-          NAME=$($ACM_SCRIPT get next-env "$APP_NAME" "$ENV_NAME")
-
-          echo "::set-output name=env_name::$NAME"
+          $STEPS_SCRIPT tag_deployment_next_env
 
       - name: Promote to higer env
         run: |-
-          if [[ -n '${{ steps.next_env.outputs.env_name }}' ]]; then
-            # Create tag to trigger next env deployment
-            git tag "${TAG%-*}-${{ steps.next_env.outputs.env_name }}"
-            git push --tags
-          else
-            echo '::notice::End of promotion'
-          fi
+          $STEPS_SCRIPT deployment_promote

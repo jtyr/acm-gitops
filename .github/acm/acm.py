@@ -143,21 +143,41 @@ class Generate(Common):
         # Prepare templating
         self.j2e = Environment(
             loader=FileSystemLoader(template_path.split(",")),
+            keep_trailing_newline=True,
         )
         self.j2e.filters["merge"] = self._jinja2_filter_merge
         self.j2e.filters["to_yaml"] = self._jinja2_filter_to_yaml
 
     # Reads parameters.yaml file for particular application
     def _get_params(self):
-        if self._params is None:
-            self.log.debug("Reading parameters file")
+        # Use cache
+        if self._params is not None:
+            return self._params
 
-            try:
-                self._params = self.tools.read_yaml_file(
-                    os.path.join(self.meta_path, self.app, "parameters.yaml"),
-                )
-            except Exception as e:
-                raise Exception("cannot read file 'parameters.yaml': %s" % e)
+        self.log.debug("Reading parameters file")
+
+        try:
+            self._params = self.tools.read_yaml_file(
+                os.path.join(self.meta_path, self.app, "parameters.yaml"),
+            )
+        except Exception as e:
+            raise Exception("cannot read file 'parameters.yaml': %s" % e)
+
+        # Set default values
+        if "chart" in self._params and (
+            "values" not in self._params["chart"]
+            or not isinstance(self._params["chart"]["values"], dict)
+        ):
+            self._params["chart"]["values"] = {}
+
+        # Set default labels
+        if "labels" not in self._params or not isinstance(self._params["labels"], dict):
+            self._params["labels"] = {}
+
+        # Convert all labels to string
+        for k, v in self._params["labels"].items():
+            if not isinstance(v, str):
+                self._params[k] = str(v)
 
         return self._params
 
@@ -171,20 +191,35 @@ class Generate(Common):
             val_file,
         )
 
+        # Values file is optional
         if not os.path.exists(val_file_full):
             self.log.debug("No zone-specific values are set in '%s'" % val_file_full)
 
             self._values = {
+                "deepMerge": False,
                 "values": {},
             }
 
-        if self._values is None:
-            self.log.debug("Reading values file '%s'" % val_file)
+        # Use cache
+        if self._values is not None:
+            return self._values
 
-            try:
-                self._values = self.tools.read_yaml_file(val_file_full)
-            except Exception as e:
-                raise Exception("cannot read values file '%s': %s" % (val_file, e))
+        self.log.debug("Reading values file '%s'" % val_file)
+
+        try:
+            self._values = self.tools.read_yaml_file(val_file_full)
+        except Exception as e:
+            raise Exception("cannot read values file '%s': %s" % (val_file, e))
+
+        # Set default values
+        if "values" not in self._values or not isinstance(self._values["values"], dict):
+            self._values["values"] = {}
+
+        # Set default deepMerge value
+        if "deepMerge" not in self._values or not isinstance(
+            self._values["deepMerge"], bool
+        ):
+            self._values["deepMerge"] = False
 
         return self._values
 
@@ -208,7 +243,7 @@ class Generate(Common):
 
     # Custom Jinja2 filter that allows to produce YAML string
     def _jinja2_filter_to_yaml(self, data):
-        return yaml.dump(data, Dumper=MyDumper, default_flow_style=False)
+        return yaml.dump(data, Dumper=MyDumper, default_flow_style=False).rstrip()
 
     # Generate Application resource
     def application(self):
@@ -347,7 +382,7 @@ class Get(Common):
 
     # Get the name of the next environment
     def next_env(self):
-        self.log.info("Getting highet env")
+        self.log.info("Getting next env")
 
         promotion = self._get_promotion()
         found = False
@@ -575,7 +610,6 @@ def main():
         try:
             gen.application()
         except Exception as e:
-            traceback.print_exc(file=sys.stderr)
             log.error("Failed to generate Application: %s" % e)
             sys.exit(1)
 
