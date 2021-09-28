@@ -246,13 +246,15 @@ function tag_deployment_next_env() {
 # Create and push tag to trigger the next step of the promotion
 function tag_deployment_promote() {
     # Check required env vars
-    if [[ -z $ENV_NAME ]]; then
-        msg 'E' 'No ENV_NAME defined' 1
+    if [[ -z $NEXT_ENV ]]; then
+        msg 'E' 'No NEXT_ENV defined' 1
+    elif [[ -z $TAG ]]; then
+        msg 'E' 'No TAG defined' 1
     fi
 
     if [[ -n $ENV_NAME ]]; then
         # Create tag to trigger next env deployment
-        git tag "${TAG%-*}-$ENV_NAME"
+        git tag "${TAG%-*}-$NEXT_ENV"
         git push --tags
     else
         msg 'I' 'End of promotion'
