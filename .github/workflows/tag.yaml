@@ -74,7 +74,9 @@ jobs:
               $ACM_SCRIPT generate "$APP_NAME" "$ENV_NAME" "$Z"
             done
 
-            if [[ $(git status --porcelain | wc -l) > 0 ]]; then
+            git status
+
+            if [[ $(git -C "$ACM_RELEASE_PATH" status --porcelain | wc -l) > 0 ]]; then
               # Commit and push
               git config --global user.email 'gitops@finastra.com'
               git config --global user.name 'GitHub Action'
