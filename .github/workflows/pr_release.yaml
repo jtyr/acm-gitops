@@ -5,6 +5,9 @@ on:
     branches:
       - release
 
+env:
+  STEPS_SCRIPT: ./.github/steps.sh
+
 jobs:
   error:
     name: Error
@@ -12,5 +15,4 @@ jobs:
     steps:
       - name: Show error
         run: |
-          echo '::error::PRs are not allowed for the "release" branch.'
-          exit 1
+          $STEPS_SCRIPT pr_release error

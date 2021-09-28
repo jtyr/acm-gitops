@@ -10,6 +10,9 @@ on:
       - .gitignore
       - .pre-commit-config.yaml
 
+env:
+  STEPS_SCRIPT: ./.github/steps.sh
+
 jobs:
   lint:
     name: Linting
@@ -47,11 +50,4 @@ jobs:
 
       - name: Check only one application is changing
         run: |
-          NUM_CHANGED=$(git diff origin/master --name-only | egrep -v '^\.github' | grep -Po '^[a-z0-9-]+/' | sort -u | wc -l)
-
-          if [[ "$NUM_CHANGED" != 1 ]]; then
-             echo "::error::There must be change exactly to one application (found changes: $NUM_CHANGED)."
-             exit 1
-          else
-             echo '::notice::All good'
-          fi
+          $STEPS_SCRIPT pr check_single_app_check
