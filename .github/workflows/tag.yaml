@@ -61,4 +61,6 @@ jobs:
 
       - name: Promote to higer env
         run: |-
+          export NEXT_ENV='${{ steps.next_env.outputs.env_name }}'
+
           $STEPS_SCRIPT tag deployment_promote
