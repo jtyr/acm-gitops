@@ -1,7 +1,9 @@
 ---
 
-subTemplate: subscription_v1
-appTemplate: application_v1
+# Optional
+#template:
+#  application: application-v1.yaml.j2
+#  subscription: subscription-v1.yaml.j2
 
 # Required
 name: myapp-test
@@ -21,19 +23,3 @@ chart:
   values:
     ccc:
       xxx: yyy
-
-
-# metadata:
-#   name: myapp-test                              # Required
-#   namespace: test                               # Required
-#   labels:
-#     acm-app: myapp                              # Auto-generated (dir name)
-#     tenant: operating-platform                  # Optional
-# spec:
-#   channel: operating-platform-ch-helm/channel   # Required
-#   name: ocp-myapp                               # Required
-#   packageFilter:
-#     version: 0.2.0                              # Optional
-#     packageOverrides:
-#       - packageName: ocp-myapp                  # Auto-generated (spec.name)
-#         packageAlias: myapp-ffdc                # Auto-generated (metadata.name)
