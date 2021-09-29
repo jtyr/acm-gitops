@@ -101,7 +101,7 @@ class Tools:
 
 
 class Common:
-    def __init__(self, app, env, meta_path, logger):
+    def __init__(self, app, meta_path, logger, env=None):
         # Class params
         self.app = app
         self.env = env
@@ -110,6 +110,24 @@ class Common:
 
         # Make tools accessible
         self.tools = Tools(self.log)
+
+    # Reads promotions.yaml file for particular application
+    def _get_promotion(self):
+        self.log.debug("Reading promotion file")
+
+        try:
+            promotion = self.tools.read_yaml_file(
+                os.path.join(self.meta_path, self.app, "promotion.yaml"),
+            )
+        except Exception as e:
+            raise Exception("cannot read file 'promotion.yaml': %s" % e)
+
+        if "promotion" not in promotion:
+            raise Exception(
+                "there is no promotion defined in the file 'promotion.yaml'"
+            )
+
+        return promotion["promotion"]
 
 
 class Generate(Common):
@@ -126,7 +144,7 @@ class Generate(Common):
         logger,
     ):
         # Call parent class
-        super().__init__(app, env, meta_path, logger)
+        super().__init__(app=app, env=env, meta_path=meta_path, logger=logger)
 
         # Class params
         self.zone = zone
@@ -327,25 +345,7 @@ class Generate(Common):
 class Get(Common):
     def __init__(self, app, meta_path, logger, env=None):
         # Call parent class
-        super().__init__(app, env, meta_path, logger)
-
-    # Reads promotions.yaml file for particular application
-    def _get_promotion(self):
-        self.log.debug("Reading promotion file")
-
-        try:
-            promotion = self.tools.read_yaml_file(
-                os.path.join(self.meta_path, self.app, "promotion.yaml"),
-            )
-        except Exception as e:
-            raise Exception("cannot read file 'promotion.yaml': %s" % e)
-
-        if "promotion" not in promotion:
-            raise Exception(
-                "there is no promotion defined in the file 'promotion.yaml'"
-            )
-
-        return promotion["promotion"]
+        super().__init__(app=app, env=env, meta_path=meta_path, logger=logger)
 
     # Get list of zones for the particular environment
     def zones(self):
@@ -423,14 +423,33 @@ class Get(Common):
                 )
 
 
-class Validate:
-    def __init__(self, logger):
-        # Class params
-        self.log = logger
+class Validate(Common):
+    def __init__(self, app, meta_path, release_path, logger):
+        # Call parent class
+        super().__init__(app=app, meta_path=meta_path, logger=logger)
 
-    # TODO: Do something
-    def do(self):
-        pass
+        # Class params
+        self.release_path = release_path
+
+    # Verify that there is a placement file for each promotion placement
+    def placements(self):
+        promotion = self._get_promotion()
+
+        for p in promotion:
+            if "env" in p and "placements" in p:
+                for info in p["placements"]:
+                    if "name" in info:
+                        filename = os.path.join(
+                            p["env"], "placement-rules", "%s.yaml" % info["name"]
+                        )
+                        filename_full = os.path.join(self.release_path, filename)
+
+                        if os.path.exists(filename_full):
+                            self.log.info("Found '%s'" % filename)
+                        else:
+                            raise Exception(
+                                "Cannot find placement file '%s'" % filename
+                            )
 
 
 def parse_args():
@@ -537,13 +556,24 @@ def parse_args():
         envvar="ACM_RELEASE_PATH",
         help="Path to the release directory (env: ACM_RELEASE_PATH).",
     )
+    validate_subparsers = parser_validate.add_subparsers(help="Actions.")
+
+    parser_validate_placements = validate_subparsers.add_parser(
+        "placements",
+        help="Validate placements of the application.",
+    )
+    parser_validate_placements.set_defaults(action="validate_placements")
+    parser_validate_placements.add_argument(
+        "app",
+        help="Name of the application.",
+    )
 
     parser_get = subparsers.add_parser(
         "get",
         help="Get information.",
     )
-    get_subparsers = parser_get.add_subparsers(help="Actions.")
     parser_get.set_defaults(action="get")
+    get_subparsers = parser_get.add_subparsers(help="Actions.")
 
     parser_get_zones = get_subparsers.add_parser(
         "zones",
@@ -672,15 +702,18 @@ def main():
         except Exception as e:
             log.error("Failed to get name of the next environment: %s" % e)
             sys.exit(1)
-    elif args.action == "validate":
+    elif args.action == "validate_placements":
         val = Validate(
+            app=args.app,
+            meta_path=args.meta_path,
+            release_path=args.release_path,
             logger=log,
         )
 
         try:
-            val.do()
+            val.placements()
         except Exception as e:
-            log.error("Failed to run validations: %s" % e)
+            log.error("Failed to run placements validation: %s" % e)
             sys.exit(1)
     else:
         log.error("No '%s' action specified!" % args.action)

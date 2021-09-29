@@ -148,9 +148,18 @@ function pr_res_validation() {
 }
 
 
-# Validate configuration
-function pr_conf_validation() {
-    msg 'I' 'Validating configuration...'
+# Validate if placement-rules exist for all placements in the promotion.yaml file
+function pr_validate_placements() {
+    # Check required env vars
+    if [[ -z $APP_NAME ]]; then
+        msg 'E' 'No APP_NAME defined' 1
+    elif [[ -z $GITHUB_WORKSPACE ]]; then
+        msg 'E' 'No GITHUB_WORKSPACE defined' 1
+    fi
+
+    export ACM_RELEASE_PATH="$GITHUB_WORKSPACE/.release"
+
+    $ACM_SCRIPT validate placements "$APP_NAME"
 }
 
 
@@ -351,8 +360,8 @@ if [[ $WORKFLOW == 'pr' ]]; then
         pr_check_promotion_exist
     elif [[ $STEP == 'res_validation' ]]; then
         pr_res_validation
-    elif [[ $STEP == 'conf_validation' ]]; then
-        pr_conf_validation
+    elif [[ $STEP == 'validate_placements' ]]; then
+        pr_validate_placements
     else
         input_error step
     fi

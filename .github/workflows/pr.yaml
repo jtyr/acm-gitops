@@ -81,7 +81,7 @@ jobs:
     name: Resource validation
     needs:
       - lint
-      - single_app_check
+      - schema_validaton
     runs-on: ubuntu-latest
     if: needs.lint.outputs.apps_changed_number == 1
     env:
@@ -97,7 +97,7 @@ jobs:
     name: Configuration validation
     needs:
       - lint
-      - single_app_check
+      - schema_validaton
     runs-on: ubuntu-latest
     if: needs.lint.outputs.apps_changed_number == 1
     env:
@@ -105,6 +105,12 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
-      - name: Check
+      - name: Getting the release branch
+        uses: actions/checkout@v2
+        with:
+          ref: release
+          path: .release
+
+      - name: Validate placements
         run: |
-          $STEPS_SCRIPT pr conf_validation
+          $STEPS_SCRIPT pr validate_placements
