@@ -15,7 +15,10 @@ function usage() {
     echo ''
     echo 'Workflows and their steps:'
     echo ' * pr'
-    echo '    - check_single_app_check'
+    echo '    - apps_changed'
+    echo '    - single_app_check'
+    echo '    - res_validation'
+    echo '    - conf_validation'
     echo ' * pr_release'
     echo '    - error_show'
     echo ' * merge'
@@ -79,17 +82,52 @@ function input_error() {
 ### PR ###
         #
 
-# Check if PR contains changes for single application only
-function pr_check_single_app_check() {
-    NUM_CHANGED=$(git diff origin/master --name-only | grep -Ev '^\.github' | grep -Po '^[a-z0-9-]+/' | sort -u | wc -l)
+# Check if PR contains changes for apps and return number and in case of single
+# app changed also its name
+function pr_apps_changed() {
+    APP_NAME=$(git diff origin/master --name-only | grep -Ev '^\.github' | grep -Po '^[a-z0-9-]+/' | sort -u)
+    NUM_CHANGED=$(echo "$APP_NAME" | grep -Evc '^$')
+
+    echo "::set-output name=number::$NUM_CHANGED"
+
+    if [[ $NUM_CHANGED == 1 ]]; then
+        echo "::set-output name=app_name::${APP_NAME:0:-1}"
+    else
+        echo '::set-output name=app_name::'
+    fi
+}
+
+
+# Check if only one app changed and show error if more than one changed
+function pr_single_app_check() {
+    # Check required env vars
+    if [[ -z $NUM_CHANGED ]]; then
+        msg 'E' 'No NUM_CHANGED defined' 1
+    fi
 
     if [[ $NUM_CHANGED != 1 ]]; then
-        msg 'E' "There must be change exactly to one application (found changes: $NUM_CHANGED)." 1
+        msg 'E' "There must be change to exactly one application (found changes: $NUM_CHANGED)." 1
     else
         msg 'I' 'All good'
     fi
 }
 
+
+# Validate resource
+function pr_res_validation() {
+    msg 'I' 'Validating resource...'
+}
+
+
+# Validate configuration
+function pr_conf_validation() {
+    msg 'I' 'Validating configuration...'
+}
+
+
+#####################
+### PR - release ###
+                  #
 
 # Show error message if somebody tries to create PR for the release branch
 function pr_release_error_show() {
@@ -285,8 +323,14 @@ fi
 
 # Decide what to do
 if [[ $WORKFLOW == 'pr' ]]; then
-    if [[ $STEP == 'check_single_app_check' ]]; then
-        pr_check_single_app_check
+    if [[ $STEP == 'apps_changed' ]]; then
+        pr_apps_changed
+    elif [[ $STEP == 'single_app_check' ]]; then
+        pr_single_app_check
+    elif [[ $STEP == 'res_validation' ]]; then
+        pr_res_validation
+    elif [[ $STEP == 'conf_validation' ]]; then
+        pr_conf_validation
     else
         input_error step
     fi

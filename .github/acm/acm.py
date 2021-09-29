@@ -249,13 +249,21 @@ class Generate(Common):
     def application(self):
         self.log.info("Generating Application")
 
+        params = self._get_params()
+
+        # Allow to override template via params
+        if "template" in params and "application" in params["template"]:
+            app_template = params["template"]["application"]
+        else:
+            app_template = self.application_template
+
         try:
-            template = self.j2e.get_template(self.application_template)
+            template = self.j2e.get_template(app_template)
 
             app = template.render(
                 app=self.app,
                 env=self.env,
-                params=self._get_params(),
+                params=params,
                 values=self._get_values(),
             )
         except Exception as e:
@@ -279,15 +287,23 @@ class Generate(Common):
     def subscription(self):
         self.log.info("Generating Subscription")
 
+        params = self._get_params()
+
+        # Allow to override template via params
+        if "template" in params and "subscription" in params["template"]:
+            sub_template = params["template"]["subscription"]
+        else:
+            sub_template = self.subscription_template
+
         try:
-            template = self.j2e.get_template(self.subscription_template)
+            template = self.j2e.get_template(sub_template)
 
             sub = template.render(
                 app=self.app,
                 env=self.env,
                 zone=self.zone,
                 placement="%s-%s" % (self.env, self.zone),
-                params=self._get_params(),
+                params=params,
                 values=self._get_values(),
             )
         except Exception as e:

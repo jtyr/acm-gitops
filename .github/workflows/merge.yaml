@@ -9,8 +9,7 @@ on:
     paths-ignore:
       - README.md
       - .github/**
-      - .gitignore
-      - .pre-commit-config.yaml
+      - .*
 
 env:
   STEPS_SCRIPT: ./.github/steps.sh

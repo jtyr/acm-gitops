@@ -4,11 +4,6 @@ on:
   pull_request:
     branches:
       - master
-    paths-ignore:
-      - README.md
-      - .github/**
-      - .gitignore
-      - .pre-commit-config.yaml
 
 env:
   STEPS_SCRIPT: ./.github/steps.sh
@@ -19,35 +14,55 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - uses: pre-commit/action@v2.0.3
-
-  validate_res:
-    name: Resource validation
-    #needs: lint
-    runs-on: ubuntu-latest
-    steps:
-      - name: Check
-        run: |
-          echo "Validating resources..."
-
-  validate_conf:
-    name: Configuration validation
-    #needs: validate_res
-    runs-on: ubuntu-latest
-    steps:
-      - name: Check
-        run: |
-          echo "Validating configuration..."
-
-  check_single_app:
-    name: Updates to one application only
-    #needs: validate_conf
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
         with:
           fetch-depth: 0
 
-      - name: Check only one application is changing
+      - uses: pre-commit/action@v2.0.3
+
+      - name: Check how many application has changed
+        id: apps_changed
+        run: |-
+          $STEPS_SCRIPT pr apps_changed
+
+    outputs:
+      apps_changed_number: ${{ steps.apps_changed.outputs.number }}
+      app_changed: ${{ steps.apps_changed.outputs.app_name }}
+
+  single_app_check:
+    name: Single app change check
+    needs: lint
+    runs-on: ubuntu-latest
+    if: needs.lint.outputs.apps_changed_number != 0
+    env:
+      NUM_CHANGED: ${{ needs.lint.outputs.apps_changed_number }}
+    steps:
+      - uses: actions/checkout@v2
+      - name: Check
         run: |
-          $STEPS_SCRIPT pr check_single_app_check
+          $STEPS_SCRIPT pr single_app_check
+
+  res_validation:
+    name: Resource validation
+    needs: single_app_check
+    runs-on: ubuntu-latest
+    if: needs.lint.outputs.apps_changed_number == 1
+    env:
+      APP_NAME: ${{ needs.lint.outputs.app_changed }}
+    steps:
+      - uses: actions/checkout@v2
+      - name: Check
+        run: |
+          $STEPS_SCRIPT pr res_validation
+
+  conf_validation:
+    name: Configuration validation
+    needs: single_app_check
+    runs-on: ubuntu-latest
+    if: needs.lint.outputs.apps_changed_number == 1
+    env:
+      APP_NAME: ${{ needs.lint.outputs.app_changed }}
+    steps:
+      - uses: actions/checkout@v2
+      - name: Check
+        run: |
+          $STEPS_SCRIPT pr conf_validation

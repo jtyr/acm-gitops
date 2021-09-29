@@ -1,17 +1,38 @@
-# See https://pre-commit.com for more information
-# See https://pre-commit.com/hooks.html for more hooks
-repos: []
-#  - repo: local
-#    hooks:
-#      - id: check-tag-templated
-#        name: Check that the tag workflow has been templated
-#        language: system
-#        entry: >
-#          bash -c "
-#            TMPL=$(yq e 'explode(.)' .github/workflows/tag.tmpl | md5sum | awk '{print $1}')
-#            YAML=$(cat .github/workflows/tag.yaml | md5sum | awk '{print $1}')
-#            if [[ $TMPL != $YAML ]]; then
-#              exit 1
-#            fi
-#          "
-#        files: ^\.github/workflows/tag.(yaml|tmpl)$
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.0.1
+    hooks:
+      - id: check-yaml
+      - id: end-of-file-fixer
+      - id: mixed-line-ending
+        args:
+          - --fix=lf
+      - id: trailing-whitespace
+
+  - repo: https://github.com/igorshubovych/markdownlint-cli
+    rev: v0.28.1
+    hooks:
+      - id: markdownlint
+        name: Markdownlint
+
+  - repo: https://github.com/jumanjihouse/pre-commit-hooks
+    rev: 2.1.5
+    hooks:
+      - id: shellcheck
+        name: Shellcheck
+
+  - repo: https://github.com/psf/black
+    rev: 21.9b0
+    hooks:
+      - id: black
+        name: Python black code formatter
+        language_version: python3
+
+  - repo: https://github.com/pycqa/flake8
+    rev: 3.9.2
+    hooks:
+      - id: flake8
+        name: Python flake8
+        args:
+          - --max-line-length=88
+          - --ignore=E501,W503
