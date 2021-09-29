@@ -19,6 +19,8 @@ function usage() {
     echo ' * pr'
     echo '    - apps_changed'
     echo '    - single_app_check'
+    echo '    - check_parameters_exist'
+    echo '    - check_promotion_exist'
     echo '    - res_validation'
     echo '    - conf_validation'
     echo ' * merge'
@@ -112,6 +114,33 @@ function pr_single_app_check() {
     fi
 }
 
+# Check if parameters.yaml file exists
+function pr_check_parameters_exist() {
+    # Check required env vars
+    if [[ -z $APP_NAME ]]; then
+        msg 'E' 'No APP_NAME defined' 1
+    fi
+
+    if [[ -f $APP_NAME/parameters.yaml ]]; then
+        msg 'I' 'The "parameters.yaml" file exists'
+    else
+        msg 'E' 'The "parameters.yaml" file does not exist'
+    fi
+}
+
+# Check if promotion.yaml file exists
+function pr_check_promotion_exist() {
+    # Check required env vars
+    if [[ -z $APP_NAME ]]; then
+        msg 'E' 'No APP_NAME defined' 1
+    fi
+
+    if [[ -f $APP_NAME/promotion.yaml ]]; then
+        msg 'I' 'The "promotion.yaml" file exists'
+    else
+        msg 'E' 'The "promotion.yaml" file does not exist'
+    fi
+}
 
 # Validate resource
 function pr_res_validation() {
@@ -316,6 +345,10 @@ if [[ $WORKFLOW == 'pr' ]]; then
         pr_apps_changed
     elif [[ $STEP == 'single_app_check' ]]; then
         pr_single_app_check
+    elif [[ $STEP == 'check_parameters_exist' ]]; then
+        pr_check_parameters_exist
+    elif [[ $STEP == 'check_promotion_exist' ]]; then
+        pr_check_promotion_exist
     elif [[ $STEP == 'res_validation' ]]; then
         pr_res_validation
     elif [[ $STEP == 'conf_validation' ]]; then

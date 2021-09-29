@@ -2,8 +2,8 @@
 
 # Optional
 #template:
-#  application: application-v1.yaml.j2
-#  subscription: subscription-v1.yaml.j2
+#  application: application-v2.yaml.j2
+#  subscription: subscription-v2.yaml.j2
 
 # Required
 name: myapp-test
@@ -22,4 +22,4 @@ chart:
   # Optional
   values:
     ccc:
-      xxx: yyy
+      xxx: zzz
