@@ -19,7 +19,7 @@ jobs:
 
       - uses: pre-commit/action@v2.0.3
 
-      - name: Check how many application has changed
+      - name: Check how many applications have changed
         id: apps_changed
         run: |-
           $STEPS_SCRIPT pr apps_changed
@@ -37,32 +37,74 @@ jobs:
       NUM_CHANGED: ${{ needs.lint.outputs.apps_changed_number }}
     steps:
       - uses: actions/checkout@v2
+
       - name: Check
         run: |
           $STEPS_SCRIPT pr single_app_check
 
-  res_validation:
-    name: Resource validation
-    needs: single_app_check
+  schema_validaton:
+    name: Schema validation
+    needs:
+      - lint
+      - single_app_check
     runs-on: ubuntu-latest
     if: needs.lint.outputs.apps_changed_number == 1
     env:
       APP_NAME: ${{ needs.lint.outputs.app_changed }}
     steps:
       - uses: actions/checkout@v2
+
+      - name: Check parameters.yaml exists
+        run: |-
+          $STEPS_SCRIPT pr check_parameters_exist
+
+      - name: Check parameters.yaml schema
+        uses: docker://helpfulengineering/yamale:latest
+        with:
+          args: -s .github/schemas/parameters.yaml ${{ needs.lint.outputs.app_changed }}/parameters.yaml
+
+      - name: Check promotion.yaml exists
+        run: |-
+          $STEPS_SCRIPT pr check_promotion_exist
+
+      - name: Check promotion.yaml schema
+        uses: docker://helpfulengineering/yamale:latest
+        with:
+          args: -s .github/schemas/promotion.yaml ${{ needs.lint.outputs.app_changed }}/promotion.yaml
+
+      - name: Check values
+        uses: docker://helpfulengineering/yamale:latest
+        with:
+          args: -s .github/schemas/values.yaml ${{ needs.lint.outputs.app_changed }}/values
+
+  res_validation:
+    name: Resource validation
+    needs:
+      - lint
+      - single_app_check
+    runs-on: ubuntu-latest
+    if: needs.lint.outputs.apps_changed_number == 1
+    env:
+      APP_NAME: ${{ needs.lint.outputs.app_changed }}
+    steps:
+      - uses: actions/checkout@v2
+
       - name: Check
         run: |
           $STEPS_SCRIPT pr res_validation
 
   conf_validation:
     name: Configuration validation
-    needs: single_app_check
+    needs:
+      - lint
+      - single_app_check
     runs-on: ubuntu-latest
     if: needs.lint.outputs.apps_changed_number == 1
     env:
       APP_NAME: ${{ needs.lint.outputs.app_changed }}
     steps:
       - uses: actions/checkout@v2
+
       - name: Check
         run: |
           $STEPS_SCRIPT pr conf_validation

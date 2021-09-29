@@ -1,0 +1,13 @@
+---
+
+promotion: list(include('promotion'), min=1)
+
+---
+
+promotion:
+  env: str()
+  placements: list(include('placement'), min=1)
+
+placement:
+  name: regex('^[a-z0-9]+$')
+  priority: int(min=0, required=False)
