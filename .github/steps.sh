@@ -21,8 +21,6 @@ function usage() {
     echo '    - single_app_check'
     echo '    - res_validation'
     echo '    - conf_validation'
-    echo ' * pr_release'
-    echo '    - error_show'
     echo ' * merge'
     echo '    - tag_app'
     echo '    - tag_create_push'
@@ -124,16 +122,6 @@ function pr_res_validation() {
 # Validate configuration
 function pr_conf_validation() {
     msg 'I' 'Validating configuration...'
-}
-
-
-#####################
-### PR - release ###
-                  #
-
-# Show error message if somebody tries to create PR for the release branch
-function pr_release_error_show() {
-    msg 'E' 'PRs are not allowed for the "release" branch.' 1
 }
 
 
@@ -332,12 +320,6 @@ if [[ $WORKFLOW == 'pr' ]]; then
         pr_res_validation
     elif [[ $STEP == 'conf_validation' ]]; then
         pr_conf_validation
-    else
-        input_error step
-    fi
-elif [[ $WORKFLOW == 'pr_release' ]]; then
-    if [[ $STEP == 'error_show' ]]; then
-        pr_release_error_show
     else
         input_error step
     fi
