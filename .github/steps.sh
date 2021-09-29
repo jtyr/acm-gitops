@@ -11,6 +11,8 @@ ACM_SCRIPT='./.github/acm/acm.py -v'
 
 # Show usage message for this script
 function usage() {
+    EXIT=${1:-0}
+
     echo "Usage: $0 <workflow> <step>"
     echo ''
     echo 'Workflows and their steps:'
@@ -29,6 +31,8 @@ function usage() {
     echo '    - deployment_generate_deploy'
     echo '    - deployment_next_env'
     echo '    - deployment_promote'
+
+    exit "$EXIT"
 }
 
 
@@ -72,9 +76,7 @@ function input_error() {
         msg 'E' "Unknown workflow '$STEP'"
     fi
 
-    usage
-
-    exit 1
+    usage 1
 }
 
 
@@ -86,7 +88,7 @@ function input_error() {
 # app changed also its name
 function pr_apps_changed() {
     APP_NAME=$(git diff origin/master --name-only | grep -Ev '^\.github' | grep -Po '^[a-z0-9-]+/' | sort -u)
-    NUM_CHANGED=$(echo "$APP_NAME" | grep -Evc '^$')
+    NUM_CHANGED=$(echo "$APP_NAME" | grep -Evc '^$' || true)
 
     echo "::set-output name=number::$NUM_CHANGED"
 
@@ -305,20 +307,19 @@ STEP="$2"
 # Print usage message
 if [[ $WORKFLOW == '-h' || $WORKFLOW == '--help' ]]; then
     usage
-    exit 0
 fi
 
 # Verify input parameters
 if [[ -z $WORKFLOW ]]; then
     msg 'E' 'No workflow specified'
-    usage
-    exit 1
+
+    usage 1
 fi
 
 if [[ -z $STEP ]]; then
     msg 'E' 'No step specified'
-    usage
-    exit 1
+
+    usage 1
 fi
 
 # Decide what to do
