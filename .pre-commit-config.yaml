@@ -38,3 +38,22 @@ repos:
         args:
           - --max-line-length=88
           - --ignore=E501,W503
+
+  - repo: https://github.com/k-ogawa-1988/yamale-pre-commit
+    rev: v0.0.2
+    hooks:
+      - id: yamale-validate
+        name: YAML schema validation - promotion
+        args:
+          - --schema=../.github/schemas/promotion.yaml
+        files: "^.[^/]+/promotion\\.yaml$"
+      - id: yamale-validate
+        name: YAML schema validation - parameters
+        args:
+          - --schema=../.github/schemas/parameters.yaml
+        files: "^.[^/]+/parameters\\.yaml$"
+      - id: yamale-validate
+        name: YAML schema validation - values
+        args:
+          - --schema=../../.github/schemas/values.yaml
+        files: "^.[^/]+/values/.*\\.yaml$"
