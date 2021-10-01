@@ -1,8 +1,9 @@
 # ACM GitOps workflow
 
-This repo cxontains POC for
+This repo contains POC for
 [ACM](https://www.redhat.com/en/technologies/management/advanced-cluster-management)
-GitOps.
+promotion strategy using GitOps principles as described
+[here](https://github.com/finastra-engineering/gitops-acm-operator/blob/main/docs/promotion_strategy.md).
 
 ## Contribution
 
