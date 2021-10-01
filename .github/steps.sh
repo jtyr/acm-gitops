@@ -316,7 +316,7 @@ function tag_deployment_promote() {
         msg 'E' 'No TAG defined' 1
     fi
 
-    if [[ -n $ENV_NAME ]]; then
+    if [[ -n $NEXT_ENV ]]; then
         # Create tag to trigger next env deployment
         git tag "${TAG%-*}-$NEXT_ENV"
         git push --tags
