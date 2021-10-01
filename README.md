@@ -7,7 +7,7 @@ promotion strategy using GitOps principles as described
 
 ## Contribution
 
-This repo utilises `[pre-commit](https://pre-commit.com/)` hooks to lint code
+This repo utilises [`pre-commit`](https://pre-commit.com/) hooks to lint code
 changes. Make sure you install it before contributing to the repo.
 
 ### Installation
