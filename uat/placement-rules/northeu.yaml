@@ -1,0 +1,10 @@
+apiVersion: apps.open-cluster-management.io/v1
+kind: PlacementRule
+metadata:
+  name: uat-northeu
+  labels:
+    project: operating-platform
+spec:
+  clusterSelector:
+    matchLabels:
+      name: p01f70601500002
