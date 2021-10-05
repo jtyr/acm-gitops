@@ -438,18 +438,39 @@ class Validate(Common):
         for p in promotion:
             if "env" in p and "placements" in p:
                 for info in p["placements"]:
-                    if "name" in info:
-                        filename = os.path.join(
-                            p["env"], "placement-rules", "%s.yaml" % info["name"]
-                        )
-                        filename_full = os.path.join(self.release_path, filename)
+                    if "name" not in info:
+                        self.log.warn("Missing placement name for '%s' env" % p["env"])
 
-                        if os.path.exists(filename_full):
-                            self.log.info("Found '%s'" % filename)
-                        else:
-                            raise Exception(
-                                "Cannot find placement file '%s'" % filename
-                            )
+                        continue
+
+                    filename = os.path.join(
+                        p["env"], "placement-rules", "%s.yaml" % info["name"]
+                    )
+                    filename_full = os.path.join(self.release_path, filename)
+
+                    # Verify that the file exists
+                    if os.path.exists(filename_full):
+                        self.log.info("Found '%s'" % filename)
+                    else:
+                        raise Exception("cannot find placement file '%s'" % filename)
+
+                    try:
+                        p_data = self.tools.read_yaml_file(filename_full)
+                    except Exception as e:
+                        raise Exception("cannot read file '%s': %s" % (filename, e))
+
+                    # Verify that the YAML file contains expected CR name
+                    if (
+                        "metadata" in p_data
+                        and "name" in p_data["metadata"]
+                        and p_data["metadata"]["name"]
+                        == "%s-%s" % (p["env"], info["name"])
+                    ):
+                        self.log.info("Found 'name: %s-%s'" % (p["env"], info["name"]))
+                    else:
+                        raise Exception(
+                            "cannot find 'name: %s-%s'" % (p["env"], info["name"])
+                        )
 
 
 def parse_args():

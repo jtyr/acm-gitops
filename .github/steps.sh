@@ -7,6 +7,7 @@ set -e
 
 # Global vars
 ACM_SCRIPT='./.github/acm/acm.py -v'
+ACM_METADATA_BRANCH=${ACM_METADATA_BRANCH:-master}
 
 
 # Show usage message for this script
@@ -22,7 +23,7 @@ function usage() {
     echo '    - check_parameters_exist'
     echo '    - check_promotion_exist'
     echo '    - res_validation'
-    echo '    - conf_validation'
+    echo '    - validate_placements'
     echo ' * merge'
     echo '    - tag_app'
     echo '    - tag_create_push'
@@ -87,7 +88,7 @@ function input_error() {
 # Check if PR contains changes for apps and return number and in case of single
 # app changed also its name
 function pr_apps_changed() {
-    APP_NAME=$(git diff origin/master --name-only | grep -Ev '^\.github' | grep -Po '^[a-z0-9-]+/' | sort -u)
+    APP_NAME=$(git diff "origin/$ACM_METADATA_BRANCH" --name-only | grep -Ev '^\.github' | grep -Po '^[a-z0-9-]+/' | sort -u)
     NUM_CHANGED=$(echo "$APP_NAME" | grep -Evc '^$' || true)
 
     echo "::set-output name=number::$NUM_CHANGED"

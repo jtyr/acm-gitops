@@ -20,7 +20,7 @@ spec:
       name: "{{ placement }}"
   packageOverrides:
     - packageName: "{{ params.chart.name }}"
-      packageAlias: "{{ params.name }}"
+      packageAlias: "{{ params.alias | default(params.chart.name) }}"
       {%- if values["values"] %}
       packageOverrides:
         - path: spec

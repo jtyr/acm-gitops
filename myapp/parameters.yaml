@@ -14,10 +14,12 @@ labels:
   tenant: operating-platform
 # Required
 channel: operating-platform-ch-helm/channel
+# Optional
+#alias: some-alias
 chart:
   # Required
   name: ocp-myapp
-  # Rrequired
+  # Required
   version: 0.2.0
   # Optional
   values:

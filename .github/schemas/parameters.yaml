@@ -5,6 +5,7 @@ name: regex('^[a-z0-9-]+$')
 namespace: regex('^[a-z0-9-]+$')
 labels: map(regex('^([a-z0-9_.-]{2,253}/|)[a-zA-Z0-9]{1,63}', min=1, max=316), key=str(), required=False)
 channel: regex('^[a-z0-9-]+/[a-z0-9-]+$')
+alias: regex('^[a-z0-9-]+$', required=False)
 chart:
   name: regex('^[a-z0-9-]+$')
   version: regex('^(\d+\.){2,3}\d+(-\d+|)$')
