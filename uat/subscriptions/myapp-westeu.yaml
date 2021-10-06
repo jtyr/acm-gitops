@@ -19,3 +19,8 @@ spec:
   packageOverrides:
     - packageName: "ocp-myapp"
       packageAlias: "ocp-myapp"
+      packageOverrides:
+        - path: spec
+          value:
+            ccc:
+              xxx: zzz
