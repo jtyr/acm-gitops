@@ -21,9 +21,9 @@ spec:
   packageOverrides:
     - packageName: "{{ params.chart.name }}"
       packageAlias: "{{ params.alias | default(params.chart.name) }}"
-      {%- if values["values"] %}
+      {%- if params.chart['values'] or values['values'] %}
       packageOverrides:
         - path: spec
           value:
-            {{ params.chart['values'] | merge(values["values"], values.deepMerge) | to_yaml | indent(width=12) }}
+            {{ params.chart['values'] | merge(values['values'], values.deepMerge) | to_yaml | indent(width=12) }}
       {%- endif %}
