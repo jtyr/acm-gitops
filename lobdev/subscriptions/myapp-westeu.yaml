@@ -18,7 +18,7 @@ spec:
       name: "lobdev-westeu"
   packageOverrides:
     - packageName: "ocp-myapp"
-      packageAlias: "myapp-test"
+      packageAlias: "ocp-myapp"
       packageOverrides:
         - path: spec
           value:
