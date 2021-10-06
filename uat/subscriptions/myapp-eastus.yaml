@@ -18,4 +18,4 @@ spec:
       name: "uat-eastus"
   packageOverrides:
     - packageName: "ocp-myapp"
-      packageAlias: "myapp-test"
+      packageAlias: "ocp-myapp"
