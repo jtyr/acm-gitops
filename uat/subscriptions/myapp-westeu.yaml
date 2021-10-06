@@ -18,4 +18,4 @@ spec:
       name: "uat-westeu"
   packageOverrides:
     - packageName: "ocp-myapp"
-      packageAlias: "myapp-test"
+      packageAlias: "ocp-myapp"
