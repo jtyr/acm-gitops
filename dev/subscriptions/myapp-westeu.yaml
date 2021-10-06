@@ -18,7 +18,7 @@ spec:
       name: "dev-westeu"
   packageOverrides:
     - packageName: "ocp-myapp"
-      packageAlias: "ocp-myapp"
+      packageAlias: "myapp-test"
       packageOverrides:
         - path: spec
           value:
@@ -27,4 +27,4 @@ spec:
               ddd:
                 - eee
                 - fff
-              xxx: yyy
+              xxx: zzz
