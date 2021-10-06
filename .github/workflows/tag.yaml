@@ -26,8 +26,9 @@ jobs:
           $STEPS_SCRIPT tag info_get
 
     outputs:
-      env_name: ${{ steps.get.outputs.env_name }}
       app_name: ${{ steps.get.outputs.app_name }}
+      app_version: ${{ steps.get.outputs.app_version }}
+      env_name: ${{ steps.get.outputs.env_name }}
       tag: ${{ steps.get.outputs.tag }}
 
   deployment:
@@ -37,12 +38,18 @@ jobs:
     needs: info
     env:
       APP_NAME: ${{ needs.info.outputs.app_name }}
+      APP_VERSION: ${{ needs.info.outputs.app_version }}
       ENV_NAME: ${{ needs.info.outputs.env_name }}
       TAG: ${{ needs.info.outputs.tag }}
     steps:
       - uses: actions/checkout@v2
         with:
           token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+          fetch-depth: 0
+
+      - name: Check tag from prev env exists
+        run: |-
+          $STEPS_SCRIPT tag prev_env_tag_exists
 
       - name: Getting the release branch
         uses: actions/checkout@v2

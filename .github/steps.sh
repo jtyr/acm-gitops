@@ -29,6 +29,7 @@ function usage() {
     echo '    - tag_create_push'
     echo ' * tag'
     echo '    - info_get'
+    echo '    - prev_env_tag_exists'
     echo '    - deployment_generate_deploy'
     echo '    - deployment_next_env'
     echo '    - deployment_promote'
@@ -145,7 +146,7 @@ function pr_check_promotion_exist() {
 
 # Validate resource
 function pr_res_validation() {
-    msg 'I' 'Validating resource...'
+    msg 'I' 'TODO: Validating resource...'
 }
 
 
@@ -195,7 +196,7 @@ function merge_tag_create_push() {
     fi
 
     # Get the next free tag (max 300 iterations without version change)
-    for REL in {1..300}; do
+    for REL in {1..1000}; do
         TAG="$APP_NAME-$VERSION-$REL-$FIRST_ENV"
 
         TAG_EXISTS=$(git tag -l "$TAG" | wc -l)
@@ -226,19 +227,54 @@ function tag_info_get() {
     fi
 
     # TAG
-    TAG="${GITHUB_REF:10}"
+    TAG=${GITHUB_REF:10}
 
     # Extract env name
-    ENV="${TAG##*-}"
+    ENV=${TAG##*-}
 
     # Extract app name
-    APP_NO_ENV="${TAG%-*}"
-    APP_NO_REL="${APP_NO_ENV%-*}"
-    APP="${APP_NO_REL%-*}"
+    APP_NO_ENV=${TAG%-*}
+    APP_NO_REL=${APP_NO_ENV%-*}
+    APP=${APP_NO_REL%-*}
 
-    echo "::set-output name=env_name::$ENV"
+    # Extract version
+    VERSION=${APP_NO_ENV:${#APP}+1}
+
     echo "::set-output name=app_name::$APP"
+    echo "::set-output name=app_version::$VERSION"
+    echo "::set-output name=env_name::$ENV"
     echo "::set-output name=tag::$TAG"
+}
+
+
+# Check that tag from previous env exists (unless we are in the first env)
+function tag_prev_env_tag_exists() {
+    # Check required env vars
+    if [[ -z $APP_NAME ]]; then
+        msg 'E' 'No APP_NAME defined' 1
+    elif [[ -z $APP_VERSION ]]; then
+        msg 'E' 'No APP_VERSION defined' 1
+    elif [[ -z $ENV_NAME ]]; then
+        msg 'E' 'No ENV_NAME defined' 1
+    fi
+
+    FIRST_ENV=$($ACM_SCRIPT get first-env "$APP_NAME")
+
+    if [[ "$FIRST_ENV" == "$ENV_NAME" ]]; then
+        msg 'I' 'First env - nothing to do.'
+
+        return
+    fi
+
+    PREV_ENV=$($ACM_SCRIPT get prev-env "$APP_NAME" "$ENV_NAME")
+    TAG="$APP_NAME-$APP_VERSION-$PREV_ENV-success"
+    TAG_EXISTS=$(git tag -l "$TAG" | wc -l)
+
+    if [[ $TAG_EXISTS == 0 ]]; then
+        msg 'E' "Tag '$TAG' does not exist" 1
+    else
+        msg 'I' "Tag '$TAG' exists"
+    fi
 }
 
 
@@ -377,6 +413,8 @@ elif [[ $WORKFLOW == 'merge' ]]; then
 elif [[ $WORKFLOW == 'tag' ]]; then
     if [[ $STEP == 'info_get' ]]; then
         tag_info_get
+    elif [[ $STEP == 'prev_env_tag_exists' ]]; then
+        tag_prev_env_tag_exists
     elif [[ $STEP == 'deployment_generate_deploy' ]]; then
         tag_deployment_generate_deploy
     elif [[ $STEP == 'deployment_next_env' ]]; then

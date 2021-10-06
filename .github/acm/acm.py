@@ -422,6 +422,32 @@ class Get(Common):
                     % self.env
                 )
 
+    # Get the name of the previous environment
+    def prev_env(self):
+        self.log.info("Getting prev env")
+
+        promotion = self._get_promotion()
+        prev = ""
+
+        for p in promotion:
+            if "env" in p and p["env"] == self.env:
+                if prev != "":
+                    print(prev)
+
+                break
+
+            prev = p["env"]
+        else:
+            raise Exception(
+                "environment '%s' does not exist in the 'promotion.yaml' file"
+                % self.env
+            )
+
+        if prev == "":
+            self.log.warning(
+                "Environment '%s' is the first environment in the promotion" % self.env
+            )
+
 
 class Validate(Common):
     def __init__(self, app, meta_path, release_path, logger):
@@ -610,6 +636,16 @@ def parse_args():
         help="Environment name.",
     )
 
+    parser_get_first_env = get_subparsers.add_parser(
+        "first-env",
+        help="Get name of the first environment.",
+    )
+    parser_get_first_env.set_defaults(action="get_first_env")
+    parser_get_first_env.add_argument(
+        "app",
+        help="Name of the application.",
+    )
+
     parser_get_next_env = get_subparsers.add_parser(
         "next-env",
         help="Get name of the next environment.",
@@ -624,14 +660,18 @@ def parse_args():
         help="Environment name.",
     )
 
-    parser_get_first_env = get_subparsers.add_parser(
-        "first-env",
-        help="Get name of the first environment.",
+    parser_get_prev_env = get_subparsers.add_parser(
+        "prev-env",
+        help="Get name of the previous environment.",
     )
-    parser_get_first_env.set_defaults(action="get_first_env")
-    parser_get_first_env.add_argument(
+    parser_get_prev_env.set_defaults(action="get_prev_env")
+    parser_get_prev_env.add_argument(
         "app",
         help="Name of the application.",
+    )
+    parser_get_prev_env.add_argument(
+        "env",
+        help="Environment name.",
     )
 
     return parser, parser.parse_args()
@@ -722,6 +762,19 @@ def main():
             get.next_env()
         except Exception as e:
             log.error("Failed to get name of the next environment: %s" % e)
+            sys.exit(1)
+    elif args.action == "get_prev_env":
+        get = Get(
+            app=args.app,
+            env=args.env,
+            meta_path=args.meta_path,
+            logger=log,
+        )
+
+        try:
+            get.prev_env()
+        except Exception as e:
+            log.error("Failed to get name of the prev environment: %s" % e)
             sys.exit(1)
     elif args.action == "validate_placements":
         val = Validate(
