@@ -109,10 +109,10 @@ function pr_single_app_check() {
         msg 'E' 'No NUM_CHANGED defined' 1
     fi
 
-    if [[ $NUM_CHANGED != 1 ]]; then
-        msg 'E' "There must be change to exactly one application (found changes: $NUM_CHANGED)." 1
-    else
+    if [[ $NUM_CHANGED == 1 ]]; then
         msg 'I' 'All good'
+    else
+        msg 'E' "There must be change to exactly one application (found changes: $NUM_CHANGED)." 1
     fi
 }
 
@@ -172,10 +172,21 @@ function pr_validate_placements() {
 # Get app name from the last merged code
 function merge_tag_app() {
     # Get the app name from changes done since the last tag
-    LAST_TAG=$(git tag | sort -V | tail -n1 | grep -E '^.+$')
-    APP_NAME=$(git diff "$LAST_TAG" --name-only | grep -Ev '^\.github' | grep -Po '^[a-z0-9-]+/' | sort -u | sed 's,/$,,')
+    LAST_TAG=$(git tag | sort -V | tail -n1 | grep -E '^.+$' || true)
 
-    echo "::set-output name=app_name::$APP_NAME"
+    if [[ -z $LAST_TAG ]]; then
+        msg 'W' 'No tag exists yet. Using HEAD~1 instead.'
+        LAST_TAG='HEAD~1'
+    fi
+
+    APP_NAME=$(git diff "$LAST_TAG" --name-only | grep -Ev '^\.github' | grep -Po '^[a-z0-9-]+/' | sort -u | sed 's,/$,,')
+    NUM_CHANGED=$(echo "$APP_NAME" | grep -Evc '^$' || true)
+
+    if [[ $NUM_CHANGED == 1 ]]; then
+        echo "::set-output name=app_name::$APP_NAME"
+    else
+        msg 'E' "There must be change to exactly one application (found changes: $NUM_CHANGED)." 1
+    fi
 }
 
 
@@ -195,7 +206,7 @@ function merge_tag_create_push() {
         msg 'E' 'Failed to get first-env' 1
     fi
 
-    # Get the next free tag (max 300 iterations without version change)
+    # Get the next free tag (max 1000 iterations without version change)
     for REL in {1..1000}; do
         TAG="$APP_NAME-$VERSION-$REL-$FIRST_ENV"
 
@@ -300,9 +311,15 @@ function tag_deployment_generate_deploy() {
         done
 
         if [[ $(git -C "$ACM_RELEASE_PATH" status --porcelain | wc -l) -gt 0 ]]; then
+            # Check if Git is configured
+            if ! git config --get user.email 1>/dev/null; then
+                msg 'I' 'Configuring Git'
+
+                git config --global user.email 'gitops@finastra.com'
+                git config --global user.name 'GitHub Actions'
+            fi
+
             # Commit and push
-            git config --global user.email 'gitops@finastra.com'
-            git config --global user.name 'GitHub Action'
             git -C "$ACM_RELEASE_PATH" add -A
             git -C "$ACM_RELEASE_PATH" commit -am "Changes from $TAG - zone: $ZONES"
             git -C "$ACM_RELEASE_PATH" push
