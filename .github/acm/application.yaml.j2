@@ -3,7 +3,7 @@
 apiVersion: app.k8s.io/v1beta1
 kind: Application
 metadata:
-  name: "{{ params.name }}-{{ env }}"
+  name: "{{ params.name }}"
   labels:
     {%- if params.labels %}
     {{ params.labels | to_yaml | indent(width=4) }}

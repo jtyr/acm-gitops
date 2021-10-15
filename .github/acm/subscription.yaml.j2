@@ -17,7 +17,7 @@ spec:
     version: "{{ params.chart.version }}"
   placement:
     placementRef:
-      name: "{{ placement }}"
+      name: "{{ env }}-{{ zone }}"
   packageOverrides:
     - packageName: "{{ params.chart.name }}"
       packageAlias: "{{ params.alias | default(params.chart.name) }}"
