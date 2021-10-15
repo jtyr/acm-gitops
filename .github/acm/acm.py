@@ -320,7 +320,6 @@ class Generate(Common):
                 app=self.app,
                 env=self.env,
                 zone=self.zone,
-                placement="%s-%s" % (self.env, self.zone),
                 params=params,
                 values=self._get_values(),
             )
